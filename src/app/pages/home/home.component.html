@@ -1,0 +1,223 @@
+<div class="game-container">
+  
+  <!-- Header avec stats principales -->
+  <div class="game-header">
+    <div class="stats" *ngIf="gameState$ | async as gameState">
+      <div class="money">
+        💰 {{ gameState.money }} crédits
+      </div>
+      <button class="shop-toggle" (click)="toggleShop()">
+        🛒 {{ showShop ? 'Fermer' : 'Boutique' }}
+      </button>
+      <button class="reset-btn" (click)="resetGame()">🔄 Reset</button>
+    </div>
+  </div>
+
+  <!-- Inventaire -->
+  <div class="inventory-section">
+    <h2>📦 Inventaire</h2>
+    <div class="inventory-grid" *ngIf="inventory$ | async as inventory">
+      <div class="inventory-item" *ngFor="let resource of resources">
+        <ng-container *ngIf="getResourceQuantity(resource.id) > 0">
+          <span class="resource-icon">{{ resource.icon }}</span>
+          <span class="resource-name">{{ resource.name }}</span>
+          <span class="resource-quantity">{{ getResourceQuantity(resource.id) }}</span>
+        </ng-container>
+      </div>
+      <div *ngIf="Object.keys(inventory).length === 0" class="empty-inventory">
+        Inventaire vide - Achetez des mines pour commencer !
+      </div>
+    </div>
+  </div>
+
+  <!-- Boutique -->
+  <div class="shop-section" *ngIf="showShop">
+    <h2>🛒 Boutique</h2>
+    <div class="shop-grid">
+      <div class="shop-item" *ngFor="let type of machineTypes">
+        <div class="machine-info">
+          <span class="machine-icon">{{ getMachineTypeInfo(type).icon }}</span>
+          <span class="machine-name">{{ getMachineTypeInfo(type).name }}</span>
+          <span class="machine-cost">{{ getMachineTypeInfo(type).cost }} 💰</span>
+        </div>
+        <button 
+          class="buy-btn"
+          [disabled]="!(gameState$ | async)?.money || (gameState$ | async)!.money < getMachineTypeInfo(type).cost"
+          (click)="buyMachine(type)">
+          Acheter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Machines -->
+  <div class="machines-section" *ngIf="machines$ | async as machines">
+    
+    <!-- Mines -->
+    <div class="machine-category" *ngIf="getMachinesByType(machines, 'mine').length > 0">
+      <h2>🏔️ Mines</h2>
+      <div class="machine-list">
+        <div class="machine-card" *ngFor="let machine of getMachinesByType(machines, 'mine')">
+          <div class="machine-header">
+            <h3>{{ machine.name }}</h3>
+            <button 
+              class="toggle-btn"
+              [class.active]="machine.isActive"
+              (click)="toggleMachine(machine.id)">
+              {{ machine.isActive ? '⏸️' : '▶️' }}
+            </button>
+          </div>
+          
+          <div class="machine-config">
+            <label>Minerai à extraire:</label>
+            <select 
+              [value]="machine.selectedRecipeId || ''"
+              (change)="setMachineRecipe(machine.id, $any($event.target).value)">
+              <option value="">Sélectionner...</option>
+              <option 
+                *ngFor="let recipe of getRecipesForMachineType('mine')" 
+                [value]="recipe.id">
+                {{ recipe.name }} ({{ recipe.outputs[0].quantity }}/{{ recipe.duration }}s)
+              </option>
+            </select>
+          </div>
+
+          <div class="machine-status" *ngIf="machine.selectedRecipeId">
+            <ng-container *ngIf="getMachineStats(machine.id) as stats">
+              <div class="production-info">
+                Produit: {{ getResource(stats.recipe.outputs[0].resourceId)?.icon }} 
+                {{ getResource(stats.recipe.outputs[0].resourceId)?.name }}
+              </div>
+              <div class="production-rate">
+                {{ stats.cyclesPerMinute.toFixed(1) }} unités/min
+              </div>
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="stats.progress * 100"></div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fours -->
+    <div class="machine-category" *ngIf="getMachinesByType(machines, 'furnace').length > 0">
+      <h2>🔥 Fours</h2>
+      <div class="machine-list">
+        <div class="machine-card" *ngFor="let machine of getMachinesByType(machines, 'furnace')">
+          <div class="machine-header">
+            <h3>{{ machine.name }}</h3>
+            <button 
+              class="toggle-btn"
+              [class.active]="machine.isActive"
+              (click)="toggleMachine(machine.id)">
+              {{ machine.isActive ? '⏸️' : '▶️' }}
+            </button>
+          </div>
+          
+          <div class="machine-config">
+            <label>Recette de cuisson:</label>
+            <select 
+              [value]="machine.selectedRecipeId || ''"
+              (change)="setMachineRecipe(machine.id, $any($event.target).value)">
+              <option value="">Sélectionner...</option>
+              <option 
+                *ngFor="let recipe of getRecipesForMachineType('furnace')" 
+                [value]="recipe.id">
+                {{ recipe.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="machine-status" *ngIf="machine.selectedRecipeId">
+            <ng-container *ngIf="getMachineStats(machine.id) as stats">
+              <div class="recipe-details">
+                <div class="inputs">
+                  Coûte: 
+                  <span *ngFor="let input of stats.recipe.inputs; let last = last">
+                    {{ input.quantity }}x {{ getResource(input.resourceId)?.icon }}
+                    <span *ngIf="!last">, </span>
+                  </span>
+                </div>
+                <div class="outputs">
+                  Produit: {{ stats.recipe.outputs[0].quantity }}x 
+                  {{ getResource(stats.recipe.outputs[0].resourceId)?.icon }}
+                  {{ getResource(stats.recipe.outputs[0].resourceId)?.name }}
+                </div>
+              </div>
+              <div class="can-produce" [class.insufficient]="!stats.canProduce">
+                {{ stats.canProduce ? '✅ Peut produire' : '❌ Ressources insuffisantes' }}
+              </div>
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="stats.progress * 100"></div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assembleurs -->
+    <div class="machine-category" *ngIf="getMachinesByType(machines, 'assembler').length > 0">
+      <h2>⚙️ Assembleurs</h2>
+      <div class="machine-list">
+        <div class="machine-card" *ngFor="let machine of getMachinesByType(machines, 'assembler')">
+          <div class="machine-header">
+            <h3>{{ machine.name }}</h3>
+            <button 
+              class="toggle-btn"
+              [class.active]="machine.isActive"
+              (click)="toggleMachine(machine.id)">
+              {{ machine.isActive ? '⏸️' : '▶️' }}
+            </button>
+          </div>
+          
+          <div class="machine-config">
+            <label>Recette d'assemblage:</label>
+            <select 
+              [value]="machine.selectedRecipeId || ''"
+              (change)="setMachineRecipe(machine.id, $any($event.target).value)">
+              <option value="">Sélectionner...</option>
+              <option 
+                *ngFor="let recipe of getRecipesForMachineType('assembler')" 
+                [value]="recipe.id">
+                {{ recipe.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="machine-status" *ngIf="machine.selectedRecipeId">
+            <ng-container *ngIf="getMachineStats(machine.id) as stats">
+              <div class="recipe-details">
+                <div class="inputs">
+                  Coûte: 
+                  <span *ngFor="let input of stats.recipe.inputs; let last = last">
+                    {{ input.quantity }}x {{ getResource(input.resourceId)?.icon }}
+                    <span *ngIf="!last">, </span>
+                  </span>
+                </div>
+                <div class="outputs">
+                  Produit: {{ stats.recipe.outputs[0].quantity }}x 
+                  {{ getResource(stats.recipe.outputs[0].resourceId)?.icon }}
+                  {{ getResource(stats.recipe.outputs[0].resourceId)?.name }}
+                </div>
+              </div>
+              <div class="can-produce" [class.insufficient]="!stats.canProduce">
+                {{ stats.canProduce ? '✅ Peut produire' : '❌ Ressources insuffisantes' }}
+              </div>
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="stats.progress * 100"></div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si pas de machines -->
+    <div *ngIf="machines.length === 0" class="no-machines">
+      <p>Aucune machine ! Ouvrez la boutique pour commencer.</p>
+    </div>
+  </div>
+
+</div>
