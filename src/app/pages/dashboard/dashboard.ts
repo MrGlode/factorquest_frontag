@@ -9,8 +9,10 @@ import { InventoryService } from '../../services/inventory';
 import { MachineService } from '../../services/machine';
 import { RecipeService } from '../../services/recipe';
 import { ProductionService } from '../../services/production';
+import { ResearchService } from '../../services/research';
+import { MarketService } from '../../services/market';
 
-import { GameState, Inventory, Machine, Resource } from '../../models/game.model';
+import { GameState, Inventory, Machine, Resource, Laboratory, Research, ResearchProgress } from '../../models/game.model';
 
 interface DashboardStats {
   totalMachines: number;
@@ -40,6 +42,9 @@ export class Dashboard implements OnInit, OnDestroy {
   gameState$: Observable<GameState>;
   inventory$: Observable<Inventory>;
   machines$: Observable<Machine[]>;
+  laboratories$: Observable<Laboratory[]>;
+  researches$: Observable<Research[]>;
+  activeResearches$: Observable<ResearchProgress[]>;
   
   dashboardStats: DashboardStats = {
     totalMachines: 0,
@@ -61,11 +66,16 @@ export class Dashboard implements OnInit, OnDestroy {
     private inventoryService: InventoryService,
     private machineService: MachineService,
     private recipeService: RecipeService,
-    private productionService: ProductionService
+    private productionService: ProductionService,
+    private researchService: ResearchService,
+    private marketService: MarketService
   ) {
     this.gameState$ = this.gameStateService.getGameState$();
     this.inventory$ = this.inventoryService.getInventory$();
     this.machines$ = this.machineService.getMachines$();
+    this.laboratories$ = this.researchService.getLaboratories$();
+    this.researches$ = this.researchService.getResearches$();
+    this.activeResearches$ = this.researchService.getActiveResearches$();
   }
 
   ngOnInit(): void {
@@ -239,5 +249,60 @@ export class Dashboard implements OnInit, OnDestroy {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toFixed(0);
+  }
+
+  // Méthodes pour la recherche
+  getActiveResearchesCount(activeResearches: ResearchProgress[]): number {
+    return activeResearches.length;
+  }
+
+  getCompletedResearchesCount(researches: Research[]): number {
+    return researches.filter(r => r.isCompleted).length;
+  }
+
+  getTotalResearchInvestment(): number {
+    // Simuler le calcul de l'investissement total en R&D
+    const laboratories = this.researchService.getLaboratories$();
+    let totalInvestment = 0;
+    
+    laboratories.subscribe(labs => {
+      totalInvestment = labs.reduce((sum, lab) => sum + lab.cost, 0);
+    }).unsubscribe();
+    
+    return totalInvestment;
+  }
+
+  getResearchEfficiencyBonus(): number {
+    const effects = this.researchService.getActiveEffects();
+    return effects.reduce((total, effect) => {
+      if (effect.type === 'speed' || effect.type === 'efficiency') {
+        return total + effect.value;
+      }
+      return total;
+    }, 0);
+  }
+
+  getActiveEffectsCount(): number {
+    return this.researchService.getActiveEffects().length;
+  }
+
+  getTimeRemaining(progress: ResearchProgress): string {
+    const now = Date.now();
+    const remaining = progress.estimatedEndTime - now;
+    
+    if (remaining <= 0) return 'Terminé';
+    
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  }
+
+  getResearchByProgress(progress: ResearchProgress, researches: Research[]): Research | undefined {
+    return researches.find(r => r.id === progress.researchId);
   }
 }

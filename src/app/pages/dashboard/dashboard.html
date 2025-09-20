@@ -45,6 +45,90 @@
           <div class="kpi-unit">unités</div>
         </div>
       </div>
+
+      <div class="kpi-card research" *ngIf="laboratories$ | async as laboratories">
+        <div class="kpi-icon">🔬</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Laboratoires</div>
+          <div class="kpi-value">{{ laboratories.length }}</div>
+          <div class="kpi-unit">actifs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section R&D -->
+  <div class="research-overview-section">
+    <h2>🔬 Recherche & Développement</h2>
+    <div class="research-stats-grid">
+      <div class="research-stat-card" *ngIf="researches$ | async as researches">
+        <div class="stat-header">
+          <span class="stat-icon">📚</span>
+          <span class="stat-title">Technologies</span>
+        </div>
+        <div class="stat-value">{{ getCompletedResearchesCount(researches) }}/{{ researches.length }}</div>
+        <div class="stat-description">Recherches terminées</div>
+      </div>
+
+      <div class="research-stat-card" *ngIf="activeResearches$ | async as activeResearches">
+        <div class="stat-header">
+          <span class="stat-icon">⏳</span>
+          <span class="stat-title">En cours</span>
+        </div>
+        <div class="stat-value">{{ getActiveResearchesCount(activeResearches) }}</div>
+        <div class="stat-description">Recherches actives</div>
+      </div>
+
+      <div class="research-stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">💡</span>
+          <span class="stat-title">Investissement</span>
+        </div>
+        <div class="stat-value">{{ formatNumber(getTotalResearchInvestment()) }} 💰</div>
+        <div class="stat-description">Total dépensé en R&D</div>
+      </div>
+
+      <div class="research-stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">⚡</span>
+          <span class="stat-title">Bonus Actifs</span>
+        </div>
+        <div class="stat-value">{{ getActiveEffectsCount() }}</div>
+        <div class="stat-description">Améliorations appliquées</div>
+      </div>
+    </div>
+
+    <!-- Recherches en cours -->
+    <div class="active-researches" *ngIf="activeResearches$ | async as activeResearches">
+      <h3>🧪 Recherches en Cours</h3>
+      <div *ngIf="activeResearches.length === 0" class="no-active-research">
+        <p>Aucune recherche en cours. <a routerLink="/research">Lancez une recherche</a> pour améliorer votre empire !</p>
+      </div>
+      
+      <div class="active-research-list" *ngIf="activeResearches.length > 0">
+        <div class="research-progress-item" *ngFor="let progress of activeResearches">
+          <ng-container *ngIf="researches$ | async as researches">
+            <ng-container *ngIf="getResearchByProgress(progress, researches) as research">
+              <div class="research-info">
+                <span class="research-icon">{{ research.icon }}</span>
+                <div class="research-details">
+                  <div class="research-name">{{ research.name }}</div>
+                  <div class="research-category">{{ research.category | titlecase }}</div>
+                </div>
+              </div>
+              <div class="progress-section">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="progress.progress * 100"></div>
+                </div>
+                <div class="progress-info">
+                  <span class="progress-percent">{{ (progress.progress * 100).toFixed(0) }}%</span>
+                  <span class="time-remaining">{{ getTimeRemaining(progress) }}</span>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -200,6 +284,12 @@
         <div class="action-icon">⚙️</div>
         <div class="action-title">Gérer les Assembleurs</div>
         <div class="action-description">Fabrication d'objets</div>
+      </a>
+
+      <a routerLink="/research" class="action-card research">
+        <div class="action-icon">🔬</div>
+        <div class="action-title">Lancer une Recherche</div>
+        <div class="action-description">Améliorez vos technologies</div>
       </a>
     </div>
   </div>

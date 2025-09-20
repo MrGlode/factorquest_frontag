@@ -139,6 +139,12 @@
         &::before { background: #CD7F32; }
       }
 
+      &.research {
+        background: linear-gradient(145deg, #4B0082 0%, #663399 100%);
+        color: #F4E4BC;
+        &::before { background: #DAA520; }
+      }
+
       &:hover {
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 8px 20px rgba(0,0,0,0.4);
@@ -480,6 +486,11 @@
         color: #F4E4BC;
       }
 
+      &.research {
+        background: linear-gradient(145deg, #4B0082 0%, #663399 100%);
+        color: #F4E4BC;
+      }
+
       .action-icon {
         font-size: 3em;
         transition: all 0.3s ease;
@@ -497,6 +508,213 @@
         opacity: 0.8;
         text-align: center;
         font-style: italic;
+      }
+    }
+  }
+}
+
+// Section R&D
+.research-overview-section {
+  background: linear-gradient(145deg, #F4E4BC 0%, #F0E68C 100%);
+  color: #2F1B14;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  border: 3px solid #8A2BE2;
+  position: relative;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #2F1B14;
+    font-size: 1.6em;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #8A2BE2;
+    padding-bottom: 10px;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: #9370DB;
+      border-radius: 2px;
+    }
+  }
+
+  .research-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+
+    .research-stat-card {
+      background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+      color: #F4E4BC;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #B8860B;
+      text-align: center;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #9370DB;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transform: translateY(-2px);
+      }
+
+      .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+
+        .stat-icon {
+          font-size: 1.3em;
+        }
+
+        .stat-title {
+          font-weight: bold;
+          color: #9370DB;
+        }
+      }
+
+      .stat-value {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #F0E68C;
+        margin-bottom: 5px;
+      }
+
+      .stat-description {
+        font-size: 0.85em;
+        opacity: 0.8;
+        font-style: italic;
+      }
+    }
+  }
+
+  .active-researches {
+    h3 {
+      color: #8A2BE2;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+      border-left: 4px solid #9370DB;
+      padding-left: 10px;
+    }
+
+    .no-active-research {
+      text-align: center;
+      color: #2F1B14;
+      font-style: italic;
+      padding: 20px;
+      background: rgba(138,43,226,0.1);
+      border-radius: 8px;
+      border: 2px dashed #8A2BE2;
+
+      a {
+        color: #8A2BE2;
+        font-weight: bold;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .active-research-list {
+      display: grid;
+      gap: 15px;
+
+      .research-progress-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+        color: #F4E4BC;
+        border-radius: 10px;
+        border: 2px solid #B8860B;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: #9370DB;
+        }
+
+        .research-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 200px;
+
+          .research-icon {
+            font-size: 1.5em;
+            filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+          }
+
+          .research-details {
+            .research-name {
+              font-weight: bold;
+              margin-bottom: 3px;
+            }
+
+            .research-category {
+              font-size: 0.8em;
+              color: #F0E68C;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+          }
+        }
+
+        .progress-section {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+
+          .progress-bar {
+            flex: 1;
+            height: 12px;
+            background: linear-gradient(145deg, #2F1B14 0%, #3D2914 100%);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #CD7F32;
+
+            .progress-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #8A2BE2 0%, #9370DB 100%);
+              transition: width 0.5s ease;
+              border-radius: 6px;
+              box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+            }
+          }
+
+          .progress-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            min-width: 80px;
+
+            .progress-percent {
+              font-weight: bold;
+              color: #9370DB;
+            }
+
+            .time-remaining {
+              font-size: 0.8em;
+              color: #F0E68C;
+            }
+          }
+        }
       }
     }
   }
@@ -522,6 +740,23 @@
     gap: 10px;
 
     .resource-value {
+      width: 100%;
+    }
+  }
+
+  .research-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .research-progress-item {
+    flex-direction: column !important;
+    text-align: center;
+
+    .research-info {
+      min-width: auto !important;
+    }
+
+    .progress-section {
       width: 100%;
     }
   }

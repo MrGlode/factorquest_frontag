@@ -81,3 +81,47 @@ export interface Transaction {
   type: 'market' | 'order';
   orderId?: string;
 }
+
+// Système de recherche
+export interface Laboratory {
+  id: string;
+  name: string;
+  type: 'basic' | 'advanced' | 'institute' | 'mining' | 'metallurgy' | 'mechanical';
+  cost: number;
+  researchSpeed: number; // Multiplicateur de vitesse
+  maxSimultaneousResearch: number;
+  specialization?: 'mine' | 'furnace' | 'assembler' | 'general';
+  purchaseTime: number;
+}
+
+export interface Research {
+  id: string;
+  name: string;
+  description: string;
+  category: 'mine' | 'furnace' | 'assembler' | 'general';
+  requirements: { resourceId: string; quantity: number }[];
+  duration: number; // en secondes
+  prerequisites: string[]; // IDs des recherches requises
+  effects: ResearchEffect[];
+  icon: string;
+  isUnlocked: boolean;
+  isCompleted: boolean;
+  isInProgress: boolean;
+  startTime?: number;
+  laboratoryId?: string;
+}
+
+export interface ResearchEffect {
+  type: 'speed' | 'efficiency' | 'unlock_recipe' | 'cost_reduction' | 'bonus_output';
+  target: 'mine' | 'furnace' | 'assembler' | 'all';
+  value: number; // Pourcentage ou valeur absolue
+  description: string;
+}
+
+export interface ResearchProgress {
+  researchId: string;
+  laboratoryId: string;
+  startTime: number;
+  estimatedEndTime: number;
+  progress: number; // 0-1
+}
