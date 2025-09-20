@@ -1,5 +1,10 @@
 // Header restructuré
 .game-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   background: linear-gradient(135deg, #CD7F32 0%, #8B4513 50%, #B8860B 100%);
   color: #F4E4BC;
   border-radius: 15px;
