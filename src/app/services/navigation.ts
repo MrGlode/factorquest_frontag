@@ -23,8 +23,8 @@ export class NavigationService {
     { id: 'mines', label: 'Mines', icon: '🏔️' },
     { id: 'furnaces', label: 'Fours', icon: '🔥' },
     { id: 'assemblers', label: 'Assembleurs', icon: '⚙️' },
-    { id: 'market', label: 'Marché', icon: '🏪' },
-    { id: 'research', label: 'Recherche', icon: '🔬' }
+    { id: 'research', label: 'Recherche', icon: '🔬' },
+    { id: 'market', label: 'Marché', icon: '🏪' }
   ];
 
   constructor() {}
