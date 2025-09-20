@@ -1,0 +1,252 @@
+<div class="research-page">
+
+    <!-- En-tête du laboratoire -->
+    <div class="research-header">
+        <h1>🔬 Institut de Recherche & Développement</h1>
+        <p class="subtitle">Laboratoire de pointe pour l'innovation steampunk</p>
+    </div>
+
+    <!-- Boutique de laboratoires -->
+    <div class="laboratory-shop-section">
+        <h2>🏗️ Acheter des Laboratoires</h2>
+        <div class="lab-shop-grid">
+            <div class="lab-shop-item" *ngFor="let type of getLaboratoryTypes() | keyvalue">
+                <div class="lab-info">
+                    <div class="lab-icon">{{ type.value.icon }}</div>
+                    <div class="lab-details">
+                        <div class="lab-name">{{ type.value.name }}</div>
+                        <div class="lab-description">{{ type.value.description }}</div>
+                        <div class="lab-specs">
+                            <span class="spec">Vitesse: {{ (type.value.researchSpeed * 100) }}%</span>
+                            <span class="spec">Projets simultanés: {{ type.value.maxSimultaneous }}</span>
+                        </div>
+                    </div>
+                    <div class="lab-cost">{{ type.value.cost }} 💰</div>
+                </div>
+                <button class="purchase-btn" [disabled]="!canAffordLaboratory(type.key)"
+                    (click)="purchaseLaboratory(type.key)">
+                    {{ canAffordLaboratory(type.key) ? 'Acheter' : 'Pas assez d\'argent' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mes laboratoires -->
+    <div class="my-laboratories-section">
+        <ng-container *ngIf="laboratories$ | async as laboratories">
+            <h2>🏭 Mes Laboratoires ({{ laboratories.length }})</h2>
+
+            <div *ngIf="laboratories.length === 0" class="no-laboratories">
+                <p>🔬 Aucun laboratoire ! Achetez votre premier laboratoire pour commencer la recherche.</p>
+            </div>
+
+            <div class="laboratories-grid" *ngIf="laboratories.length > 0">
+                <div class="laboratory-card" *ngFor="let lab of laboratories">
+                    <div class="lab-header">
+                        <div class="lab-title">
+                            <span class="lab-icon">{{ getLaboratoryTypes()[lab.type].icon }}</span>
+                            <span class="lab-name">{{ lab.name }}</span>
+                        </div>
+                        <div class="lab-status">
+                            <ng-container *ngIf="activeResearches$ | async as activeResearches">
+                                <span class="active-count">
+                                    {{ getActiveResearchCount(lab.id, activeResearches) }}/{{
+                                    lab.maxSimultaneousResearch }}
+                                </span>
+                                <span class="status-text">actif(s)</span>
+                            </ng-container>
+                        </div>
+                    </div>
+
+                    <div class="lab-capabilities">
+                        <div class="capability">
+                            <span class="cap-label">Spécialisation:</span>
+                            <span class="cap-value">{{ lab.specialization || 'Générale' | titlecase }}</span>
+                        </div>
+                        <div class="capability">
+                            <span class="cap-label">Vitesse:</span>
+                            <span class="cap-value">{{ (lab.researchSpeed * 100) }}%</span>
+                        </div>
+                    </div>
+
+                    <!-- Recherches en cours dans ce laboratoire -->
+                    <div class="lab-research-progress">
+                        <ng-container *ngIf="activeResearches$ | async as activeResearches">
+                            <ng-container *ngIf="researches$ | async as researches">
+                                <div class="active-research" *ngFor="let progress of activeResearches">
+                                    <div *ngIf="progress.laboratoryId === lab.id" class="research-progress-item">
+                                        <ng-container
+                                            *ngIf="getResearchByIdFromList(progress.researchId, researches) as research">
+                                            <div class="research-info">
+                                                <span class="research-icon">{{ research.icon }}</span>
+                                                <span class="research-name">{{ research.name }}</span>
+                                            </div>
+                                            <div class="progress-details">
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill"
+                                                        [style.width.%]="progress.progress * 100"></div>
+                                                </div>
+                                                <div class="time-remaining">{{ getTimeRemaining(progress) }}</div>
+                                            </div>
+                                        </ng-container>
+                                    </div>
+                                </div>
+
+                                <div *ngIf="getActiveResearchCount(lab.id, activeResearches) === 0" class="lab-idle">
+                                    💤 Laboratoire en attente
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arbre technologique -->
+            <div class="research-tree-section">
+                <h2>🌳 Arbre Technologique</h2>
+
+                <!-- Filtres par catégorie -->
+                <div class="category-filters">
+                    <button class="filter-btn" [class.active]="selectedCategory === 'all'"
+                        (click)="selectedCategory = 'all'">
+                        🔬 Toutes
+                    </button>
+                    <button class="filter-btn" [class.active]="selectedCategory === 'mine'"
+                        (click)="selectedCategory = 'mine'">
+                        ⛏️ Mines
+                    </button>
+                    <button class="filter-btn" [class.active]="selectedCategory === 'furnace'"
+                        (click)="selectedCategory = 'furnace'">
+                        🔥 Fours
+                    </button>
+                    <button class="filter-btn" [class.active]="selectedCategory === 'assembler'"
+                        (click)="selectedCategory = 'assembler'">
+                        ⚙️ Assembleurs
+                    </button>
+                    <button class="filter-btn" [class.active]="selectedCategory === 'general'"
+                        (click)="selectedCategory = 'general'">
+                        🤖 Général
+                    </button>
+                </div>
+
+                <!-- Recherches disponibles -->
+                <div class="research-grid" *ngIf="researches$ | async as researches">
+                    <div class="research-card" *ngFor="let research of filterResearches(researches)"
+                        [class.completed]="research.isCompleted" [class.in-progress]="research.isInProgress"
+                        [class.available]="research.isUnlocked && !research.isCompleted && !research.isInProgress"
+                        [class.locked]="!research.isUnlocked">
+
+                        <div class="research-header">
+                            <div class="research-title">
+                                <span class="research-icon">{{ research.icon }}</span>
+                                <span class="research-name">{{ research.name }}</span>
+                            </div>
+                            <div class="research-status" [style.color]="getResearchStatusColor(research)">
+                                {{ getResearchStatusText(research) }}
+                            </div>
+                        </div>
+
+                        <div class="research-description">
+                            {{ research.description }}
+                        </div>
+
+                        <div class="research-requirements">
+                            <h4>Ressources nécessaires:</h4>
+                            <div class="requirements-list">
+                                <div class="requirement" *ngFor="let req of research.requirements">
+                                    <span class="req-icon">{{ getResource(req.resourceId)?.icon }}</span>
+                                    <span class="req-name">{{ getResource(req.resourceId)?.name }}</span>
+                                    <span class="req-quantity">{{ req.quantity }}x</span>
+                                    <span class="req-available"
+                                        [class.sufficient]="getAvailableQuantity(req.resourceId) >= req.quantity"
+                                        [class.insufficient]="getAvailableQuantity(req.resourceId) < req.quantity">
+                                        ({{ getAvailableQuantity(req.resourceId) }} dispo)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="research-effects">
+                            <h4>Effets:</h4>
+                            <div class="effects-list">
+                                <div class="effect" *ngFor="let effect of research.effects">
+                                    <span class="effect-description">{{ effect.description }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="research-info">
+                            <div class="duration">⏱️ {{ formatDuration(research.duration) }}</div>
+                            <div class="category-badge" [attr.data-category]="research.category">
+                                {{ research.category | titlecase }}
+                            </div>
+                        </div>
+
+                        <!-- Progrès si en cours -->
+                        <div class="research-progress" *ngIf="research.isInProgress">
+                            <ng-container *ngIf="activeResearches$ | async as activeResearches">
+                                <ng-container *ngFor="let progress of activeResearches">
+                                    <div *ngIf="progress.researchId === research.id" class="progress-section">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" [style.width.%]="progress.progress * 100"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            {{ (progress.progress * 100).toFixed(0) }}% - {{ getTimeRemaining(progress)
+                                            }}
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </ng-container>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="research-actions" *ngIf="!research.isCompleted && !research.isInProgress">
+                            <div *ngIf="!research.isUnlocked" class="locked-message">
+                                🔒 Prérequis non remplis
+                            </div>
+
+                            <div *ngIf="research.isUnlocked && laboratories$"
+                                class="start-research">
+                                <div *ngIf="getAvailableLaboratories(research, laboratories).length === 0"
+                                    class="no-lab-message">
+                                    ⚠️ Aucun laboratoire compatible disponible
+                                </div>
+
+                                <div *ngIf="getAvailableLaboratories(research, laboratories).length > 0"
+                                    class="lab-selection">
+                                    <h5>Laboratoire:</h5>
+                                    <div class="available-labs">
+                                        <button class="start-btn"
+                                            *ngFor="let lab of getAvailableLaboratories(research, laboratories)"
+                                            [disabled]="!canStartResearch(research) || getActiveResearchCount(lab.id, (activeResearches$ | async) ?? []) >= lab.maxSimultaneousResearch"
+                                            (click)="startResearch(research.id, lab.id)">
+                                            {{ lab.name }}
+                                            <span class="lab-speed">({{ (lab.researchSpeed * 100) }}%)</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Effets actifs -->
+            <div class="active-effects-section">
+                <h2>⚡ Améliorations Actives</h2>
+                <div class="effects-grid">
+                    <div class="effect-item" *ngFor="let effect of getActiveEffects()">
+                        <div class="effect-info">
+                            <span class="effect-target">{{ effect.target | titlecase }}</span>
+                            <span class="effect-description">{{ effect.description }}</span>
+                        </div>
+                        <div class="effect-value">+{{ effect.value }}%</div>
+                    </div>
+
+                    <div *ngIf="getActiveEffects().length === 0" class="no-effects">
+                        <p>🔬 Aucune amélioration active. Effectuez des recherches pour débloquer des bonus !</p>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </div>

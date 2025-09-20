@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-export type NavigationTab = 'dashboard' | 'mines' | 'furnaces' | 'assemblers' | 'market';
+export type NavigationTab = 'dashboard' | 'mines' | 'furnaces' | 'assemblers' | 'market' | 'research';
 
 export interface TabInfo {
   id: NavigationTab;
@@ -23,7 +23,8 @@ export class NavigationService {
     { id: 'mines', label: 'Mines', icon: '🏔️' },
     { id: 'furnaces', label: 'Fours', icon: '🔥' },
     { id: 'assemblers', label: 'Assembleurs', icon: '⚙️' },
-    { id: 'market', label: 'Marché', icon: '🏪' }
+    { id: 'market', label: 'Marché', icon: '🏪' },
+    { id: 'research', label: 'Recherche', icon: '🔬' }
   ];
 
   constructor() {}
