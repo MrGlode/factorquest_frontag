@@ -1,0 +1,118 @@
+<div class="mines-page">
+  
+  <!-- Inventaire des minerais -->
+  <div class="mineral-inventory-section">
+    <h2>⛏️ Inventaire des Minerais</h2>
+    <div class="inventory-grid" *ngIf="inventory$ | async as inventory">
+      <div class="inventory-item" *ngFor="let resource of mineralResources">
+        <ng-container *ngIf="getResourceQuantity(resource.id) > 0">
+          <span class="resource-icon">{{ resource.icon }}</span>
+          <span class="resource-name">{{ resource.name }}</span>
+          <span class="resource-quantity">{{ getResourceQuantity(resource.id) }}</span>
+        </ng-container>
+      </div>
+      <div *ngIf="hasNoMinerals()" class="empty-inventory">
+        Aucun minerai en stock - Démarrez vos mines !
+      </div>
+    </div>
+  </div>
+
+  <!-- Boutique de mines -->
+  <div class="mine-shop-section">
+    <h2>🛒 Acheter des Mines</h2>
+    <div class="shop-item">
+      <div class="machine-info">
+        <span class="machine-icon">{{ getMineInfo().icon }}</span>
+        <span class="machine-name">{{ getMineInfo().name }}</span>
+        <span class="machine-cost">{{ getMineInfo().cost }} 💰</span>
+      </div>
+      <button 
+        class="buy-btn"
+        [disabled]="!canAffordMine()"
+        (click)="buyMine()">
+        {{ canAffordMine() ? 'Acheter' : 'Pas assez d\'argent' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Gestion des mines -->
+  <div class="mines-management-section" *ngIf="machines$ | async as machines">
+    <h2>🏔️ Mes Mines ({{ getMines(machines).length }})</h2>
+    
+    <div *ngIf="getMines(machines).length === 0" class="no-mines">
+      <p>Aucune mine ! Achetez votre première mine pour commencer l'extraction.</p>
+    </div>
+
+    <div class="mines-grid" *ngIf="getMines(machines).length > 0">
+      <div class="mine-card" *ngFor="let mine of getMines(machines)">
+        
+        <div class="mine-header">
+          <h3>{{ mine.name }}</h3>
+          <button 
+            class="toggle-btn"
+            [class.active]="mine.isActive"
+            [disabled]="!mine.selectedRecipeId"
+            (click)="toggleMine(mine.id)">
+            {{ mine.isActive ? '⏸️' : '▶️' }}
+          </button>
+        </div>
+        
+        <div class="mine-config">
+          <label>Minerai à extraire :</label>
+          <select 
+            [value]="mine.selectedRecipeId || ''"
+            (change)="setMineRecipe(mine.id, $any($event.target).value)">
+            <option value="">Sélectionner un minerai...</option>
+            <option 
+              *ngFor="let recipe of getMineRecipes()" 
+              [value]="recipe.id">
+              {{ recipe.name }} - {{ recipe.outputs[0].quantity }}/{{ recipe.duration }}s
+            </option>
+          </select>
+        </div>
+
+        <div class="mine-status" *ngIf="mine.selectedRecipeId && getMineStats(mine.id) as stats">
+          <div class="production-info">
+            <div class="producing">
+              Produit : {{ getResource(stats.recipe.outputs[0].resourceId)?.icon }} 
+              {{ getResource(stats.recipe.outputs[0].resourceId)?.name }}
+            </div>
+            <div class="production-rate">
+              ⚡ {{ stats.cyclesPerMinute.toFixed(1) }} unités/min
+            </div>
+            <div class="machine-state" [class.active]="mine.isActive">
+              {{ mine.isActive ? '🟢 En fonctionnement' : '🔴 Arrêtée' }}
+            </div>
+          </div>
+          
+          <div class="progress-section" *ngIf="mine.isActive">
+            <div class="progress-label">Extraction en cours...</div>
+            <div class="progress-bar">
+              <div class="progress" [style.width.%]="stats.progress * 100"></div>
+            </div>
+            <div class="progress-time">
+              {{ (stats.progress * stats.recipe.duration).toFixed(1) }}s / {{ stats.recipe.duration }}s
+            </div>
+          </div>
+          
+          <div class="paused-section" *ngIf="!mine.isActive && mine.selectedRecipeId">
+            <div class="paused-label">⏸️ Production en pause</div>
+            <div class="progress-bar paused">
+              <div class="progress" [style.width.%]="stats.progress * 100"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mine-actions">
+          <button 
+            class="delete-btn" 
+            (click)="deleteMine(mine.id)"
+            title="Supprimer la mine">
+            🗑️ Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
