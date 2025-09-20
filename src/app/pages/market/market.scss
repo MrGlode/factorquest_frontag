@@ -1,0 +1,624 @@
+.market-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #F4E4BC;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// En-tête du marché
+.market-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(145deg, #B8860B 0%, #DAA520 50%, #CD7F32 100%);
+  border-radius: 20px;
+  border: 4px solid #8B4513;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.8);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '💰';
+    position: absolute;
+    top: -15px;
+    left: 30px;
+    font-size: 40px;
+    opacity: 0.3;
+  }
+
+  &::after {
+    content: '📈';
+    position: absolute;
+    top: -15px;
+    right: 30px;
+    font-size: 40px;
+    opacity: 0.3;
+  }
+
+  h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.8em;
+    color: #2F1B14;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: bold;
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: 1.3em;
+    color: #3D2914;
+    font-style: italic;
+    opacity: 0.9;
+  }
+}
+
+// Sections communes
+.spot-market-section, .special-orders-section, .transactions-section {
+  background: linear-gradient(145deg, #F4E4BC 0%, #F0E68C 100%);
+  color: #2F1B14;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  border: 3px solid #CD7F32;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #2F1B14;
+    font-size: 1.7em;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 3px solid #CD7F32;
+    padding-bottom: 15px;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 5px;
+      background: #DAA520;
+      border-radius: 3px;
+    }
+  }
+}
+
+// Marché spot
+.spot-market-section {
+  .market-grid {
+    display: grid;
+    gap: 20px;
+
+    .market-item {
+      display: grid;
+      grid-template-columns: 200px 1fr 250px;
+      gap: 20px;
+      align-items: center;
+      padding: 20px;
+      background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+      color: #F4E4BC;
+      border-radius: 12px;
+      border: 2px solid #B8860B;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #DAA520;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        transform: translateY(-2px);
+      }
+
+      .resource-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+
+        .resource-icon {
+          font-size: 2.5em;
+          filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .resource-details {
+          .resource-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+          }
+
+          .stock-info {
+            color: #F0E68C;
+            font-size: 0.9em;
+          }
+        }
+      }
+
+      .market-data {
+        display: flex;
+        gap: 30px;
+
+        .price-info {
+          text-align: center;
+
+          .current-price {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #DAA520;
+            margin-bottom: 5px;
+          }
+
+          .base-price {
+            font-size: 0.9em;
+            color: #F0E68C;
+            opacity: 0.8;
+          }
+        }
+
+        .demand-info {
+          flex: 1;
+
+          .demand-label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: #F0E68C;
+          }
+
+          .demand-status {
+            font-weight: bold;
+            margin-bottom: 8px;
+          }
+
+          .demand-bar {
+            background: linear-gradient(145deg, #2F1B14 0%, #3D2914 100%);
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #CD7F32;
+
+            .demand-fill {
+              height: 100%;
+              transition: width 0.8s ease;
+              border-radius: 6px;
+              box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+            }
+          }
+        }
+      }
+
+      .trading-controls {
+        .quantity-input {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 10px;
+
+          label {
+            font-size: 0.9em;
+            color: #F0E68C;
+          }
+
+          .quantity-field {
+            width: 80px;
+            padding: 6px;
+            border: 2px solid #CD7F32;
+            border-radius: 5px;
+            background: #F4E4BC;
+            color: #2F1B14;
+            text-align: center;
+            font-family: inherit;
+
+            &:focus {
+              outline: none;
+              border-color: #DAA520;
+            }
+          }
+
+          .max-btn {
+            background: linear-gradient(145deg, #B8860B 0%, #DAA520 100%);
+            color: #2F1B14;
+            border: 1px solid #CD7F32;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+
+            &:hover {
+              background: linear-gradient(145deg, #DAA520 0%, #B8860B 100%);
+            }
+          }
+        }
+
+        .sale-preview {
+          font-size: 0.9em;
+          color: #90EE90;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+
+        .trade-actions {
+          display: flex;
+          gap: 8px;
+
+          .sell-btn, .sell-all-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #CD7F32;
+            border-radius: 6px;
+            color: #F4E4BC;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+          }
+
+          .sell-btn {
+            background: linear-gradient(145deg, #228B22 0%, #32CD32 100%);
+
+            &:hover:not(:disabled) {
+              background: linear-gradient(145deg, #32CD32 0%, #228B22 100%);
+              transform: translateY(-1px);
+            }
+          }
+
+          .sell-all-btn {
+            background: linear-gradient(145deg, #FF8C00 0%, #FFA500 100%);
+
+            &:hover:not(:disabled) {
+              background: linear-gradient(145deg, #FFA500 0%, #FF8C00 100%);
+              transform: translateY(-1px);
+            }
+          }
+        }
+      }
+    }
+
+    .no-resources {
+      text-align: center;
+      color: #2F1B14;
+      font-style: italic;
+      padding: 40px;
+      background: linear-gradient(145deg, #F4E4BC 0%, #F5DEB3 100%);
+      border-radius: 12px;
+      border: 3px dashed #CD7F32;
+      opacity: 0.8;
+
+      p {
+        margin: 0;
+        font-size: 1.1em;
+      }
+    }
+  }
+}
+
+// Commandes spéciales
+.special-orders-section {
+  .orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+
+    .order-card {
+      background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+      color: #F4E4BC;
+      border-radius: 15px;
+      padding: 25px;
+      border: 3px solid #B8860B;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #DAA520 0%, #B8860B 100%);
+      }
+
+      &:hover {
+        border-color: #DAA520;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        transform: translateY(-3px);
+      }
+
+      .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #CD7F32;
+
+        .client-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .client-icon {
+            font-size: 2em;
+            filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+          }
+
+          .client-details {
+            .client-name {
+              font-weight: bold;
+              font-size: 1.2em;
+              color: #DAA520;
+            }
+
+            .client-type {
+              font-size: 0.9em;
+              color: #F0E68C;
+              text-transform: capitalize;
+            }
+          }
+        }
+
+        .urgency-info {
+          text-align: right;
+
+          .deadline {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+          }
+
+          .reward-info {
+            .base-reward {
+              font-weight: bold;
+              color: #DAA520;
+            }
+
+            .bonus-reward {
+              display: block;
+              font-size: 0.9em;
+              color: #90EE90;
+              font-style: italic;
+            }
+          }
+        }
+      }
+
+      .order-description {
+        color: #F0E68C;
+        font-style: italic;
+        margin-bottom: 20px;
+        padding: 10px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+        border-left: 4px solid #DAA520;
+      }
+
+      .order-requirements {
+        margin-bottom: 20px;
+
+        h4 {
+          color: #DAA520;
+          margin-bottom: 12px;
+          font-size: 1.1em;
+        }
+
+        .requirements-list {
+          display: grid;
+          gap: 8px;
+
+          .requirement-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+
+            .req-icon {
+              font-size: 1.3em;
+            }
+
+            .req-name {
+              flex: 1;
+              font-weight: 500;
+            }
+
+            .req-quantity {
+              color: #DAA520;
+              font-weight: bold;
+            }
+
+            .req-stock {
+              font-size: 0.85em;
+              font-style: italic;
+
+              &.sufficient {
+                color: #90EE90;
+              }
+
+              &.insufficient {
+                color: #FFB6C1;
+                font-weight: bold;
+              }
+            }
+          }
+        }
+      }
+
+      .order-actions {
+        .fulfill-btn {
+          width: 100%;
+          padding: 15px;
+          border: 2px solid #CD7F32;
+          border-radius: 8px;
+          color: #F4E4BC;
+          cursor: pointer;
+          font-family: inherit;
+          font-weight: bold;
+          font-size: 1em;
+          transition: all 0.3s ease;
+          background: linear-gradient(145deg, #666 0%, #444 100%);
+
+          &.can-fulfill {
+            background: linear-gradient(145deg, #228B22 0%, #32CD32 100%);
+
+            &:hover {
+              background: linear-gradient(145deg, #32CD32 0%, #228B22 100%);
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(34,139,34,0.4);
+            }
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    .no-orders {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #2F1B14;
+      font-style: italic;
+      padding: 40px;
+      background: linear-gradient(145deg, #F4E4BC 0%, #F5DEB3 100%);
+      border-radius: 12px;
+      border: 3px dashed #CD7F32;
+      opacity: 0.8;
+
+      p {
+        margin: 10px 0;
+      }
+
+      small {
+        color: #8B4513;
+      }
+    }
+  }
+}
+
+// Transactions
+.transactions-section {
+  .transactions-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+    border-radius: 10px;
+    padding: 15px;
+    border: 2px solid #B8860B;
+
+    .transaction-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: rgba(244,228,188,0.1);
+      border-radius: 8px;
+      border-left: 4px solid #DAA520;
+      color: #F4E4BC;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(244,228,188,0.2);
+        transform: translateX(5px);
+      }
+
+      .transaction-time {
+        color: #F0E68C;
+        font-size: 0.9em;
+        min-width: 60px;
+      }
+
+      .transaction-details {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .transaction-icon {
+          font-size: 1.2em;
+        }
+
+        .transaction-description {
+          font-size: 0.95em;
+        }
+      }
+
+      .transaction-value {
+        color: #90EE90;
+        font-weight: bold;
+        font-size: 1.1em;
+      }
+    }
+
+    .no-transactions {
+      text-align: center;
+      color: #F0E68C;
+      font-style: italic;
+      padding: 30px;
+
+      p {
+        margin: 0;
+      }
+    }
+
+    // Scrollbar steampunk
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #2F1B14;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #B8860B;
+      border-radius: 4px;
+
+      &:hover {
+        background: #DAA520;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .market-page {
+    padding: 15px;
+  }
+
+  .market-item {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+    text-align: center;
+  }
+
+  .orders-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .order-header {
+    flex-direction: column !important;
+    gap: 15px;
+    text-align: center !important;
+  }
+}

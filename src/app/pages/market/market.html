@@ -1,0 +1,182 @@
+<div class="market-page">
+  
+  <!-- En-tête du marché -->
+  <div class="market-header">
+    <h1>🏪 Bourse Steampunk de Londres</h1>
+    <p class="subtitle">Centre névralgique du commerce industriel</p>
+  </div>
+
+  <!-- Marché spot - Prix en temps réel -->
+  <div class="spot-market-section">
+    <h2>📈 Marché Spot - Prix en Temps Réel</h2>
+    <div class="market-grid" *ngIf="marketPrices$ | async as marketPrices">
+      <ng-container *ngFor="let price of marketPrices">
+        <div class="market-item" *ngIf="getAvailableQuantity(price.resourceId) > 0">
+          <div class="resource-info">
+            <span class="resource-icon">{{ getResource(price.resourceId)?.icon }}</span>
+            <div class="resource-details">
+              <div class="resource-name">{{ getResource(price.resourceId)?.name }}</div>
+              <div class="stock-info">Stock: {{ getAvailableQuantity(price.resourceId) }} unités</div>
+            </div>
+          </div>
+          
+          <div class="market-data">
+            <div class="price-info">
+              <div class="current-price">{{ price.currentPrice }} 💰</div>
+              <div class="base-price">Base: {{ price.basePrice }} 💰</div>
+            </div>
+            <div class="demand-info">
+              <div class="demand-label">Demande:</div>
+              <div class="demand-status" [style.color]="getDemandColor(price.demand)">
+                {{ getDemandStatus(price.demand) }}
+              </div>
+              <div class="demand-bar">
+                <div class="demand-fill" 
+                     [style.width.%]="price.demand * 100"
+                     [style.background-color]="getDemandColor(price.demand)">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="trading-controls">
+            <div class="quantity-input">
+              <label>Quantité:</label>
+              <input 
+                type="number" 
+                [(ngModel)]="sellQuantities[price.resourceId]"
+                [max]="getAvailableQuantity(price.resourceId)"
+                min="0"
+                class="quantity-field">
+              <button 
+                class="max-btn"
+                (click)="sellQuantities[price.resourceId] = getAvailableQuantity(price.resourceId)">
+                Max
+              </button>
+            </div>
+            
+            <div class="sale-preview" *ngIf="sellQuantities[price.resourceId] > 0">
+              Valeur: {{ calculateSaleValue(price.resourceId) }} 💰
+            </div>
+            
+            <div class="trade-actions">
+              <button 
+                class="sell-btn"
+                [disabled]="!sellQuantities[price.resourceId] || sellQuantities[price.resourceId] <= 0"
+                (click)="sellOnMarket(price.resourceId)">
+                Vendre
+              </button>
+              <button 
+                class="sell-all-btn"
+                [disabled]="getAvailableQuantity(price.resourceId) <= 0"
+                (click)="sellAllOnMarket(price.resourceId)">
+                Tout vendre
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      
+      <!-- Message si pas de ressources -->
+      <div *ngIf="hasNoResourcesToSell(marketPrices)" class="no-resources">
+        <p>🏭 Aucune ressource à vendre ! Produisez des items pour commencer à commercer.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commandes spéciales -->
+  <div class="special-orders-section">
+    <h2>📜 Commandes Spéciales</h2>
+    <div class="orders-grid" *ngIf="specialOrders$ | async as orders">
+      <div class="order-card" *ngFor="let order of getActiveOrders(orders)">
+        
+        <div class="order-header">
+          <div class="client-info">
+            <span class="client-icon">{{ getClientIcon(order.clientType) }}</span>
+            <div class="client-details">
+              <div class="client-name">{{ order.clientName }}</div>
+              <div class="client-type">{{ order.clientType | titlecase }}</div>
+            </div>
+          </div>
+          <div class="urgency-info">
+            <div class="deadline" [style.color]="getUrgencyColor(order.deadline)">
+              ⏰ {{ getTimeRemaining(order.deadline) }}
+            </div>
+            <div class="reward-info">
+              <span class="base-reward">{{ order.reward }} 💰</span>
+              <span class="bonus-reward" *ngIf="Date.now() < order.deadline">
+                + {{ order.bonus }} 💰 bonus
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-description">
+          <em>"{{ order.description }}"</em>
+        </div>
+        
+        <div class="order-requirements">
+          <h4>Ressources demandées:</h4>
+          <div class="requirements-list">
+            <div class="requirement-item" *ngFor="let req of order.requirements">
+              <span class="req-icon">{{ getResource(req.resourceId)?.icon }}</span>
+              <span class="req-name">{{ getResource(req.resourceId)?.name }}</span>
+              <span class="req-quantity">{{ req.quantity }}x</span>
+              <span class="req-stock" 
+                    [class.sufficient]="getAvailableQuantity(req.resourceId) >= req.quantity"
+                    [class.insufficient]="getAvailableQuantity(req.resourceId) < req.quantity">
+                ({{ getAvailableQuantity(req.resourceId) }} disponible)
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-actions">
+          <button 
+            class="fulfill-btn"
+            [disabled]="!canFulfillOrder(order)"
+            [class.can-fulfill]="canFulfillOrder(order)"
+            (click)="fulfillSpecialOrder(order)">
+            {{ canFulfillOrder(order) ? 'Livrer la commande' : 'Ressources insuffisantes' }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Message si pas de commandes -->
+      <div *ngIf="getActiveOrders(orders).length === 0" class="no-orders">
+        <p>📭 Aucune commande spéciale disponible pour le moment.</p>
+        <p><small>De nouvelles commandes apparaîtront bientôt...</small></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historique des transactions -->
+  <div class="transactions-section">
+    <h2>📊 Historique des Transactions</h2>
+    <div class="transactions-container" *ngIf="transactions$ | async as transactions">
+      <div class="transaction-item" *ngFor="let transaction of getRecentTransactions(transactions)">
+        <div class="transaction-time">{{ formatTimestamp(transaction.timestamp) }}</div>
+        <div class="transaction-details">
+          <ng-container *ngIf="transaction.type === 'market'">
+            <span class="transaction-icon">{{ getResource(transaction.resourceId)?.icon }}</span>
+            <span class="transaction-description">
+              Vendu {{ transaction.quantity }}x {{ getResource(transaction.resourceId)?.name }}
+            </span>
+          </ng-container>
+          <ng-container *ngIf="transaction.type === 'order'">
+            <span class="transaction-icon">📜</span>
+            <span class="transaction-description">
+              Commande spéciale livrée
+            </span>
+          </ng-container>
+        </div>
+        <div class="transaction-value">+{{ transaction.totalValue }} 💰</div>
+      </div>
+      
+      <div *ngIf="getRecentTransactions(transactions).length === 0" class="no-transactions">
+        <p>📈 Aucune transaction récente. Commencez à vendre pour voir l'historique !</p>
+      </div>
+    </div>
+  </div>
+
+</div>
