@@ -3,6 +3,7 @@ import { MachineService } from './machine';
 import { RecipeService } from './recipe';
 import { InventoryService } from './inventory';
 import { GameStateService } from './game-state';
+import { ResearchService } from './research';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,8 @@ export class ProductionService {
     private machineService: MachineService,
     private recipeService: RecipeService,
     private inventoryService: InventoryService,
-    private gameStateService: GameStateService
+    private gameStateService: GameStateService,
+    private researchService: ResearchService
   ) {
     this.startProductionLoop();
     this.calculateOfflineProduction();
@@ -48,11 +50,20 @@ export class ProductionService {
     const recipe = this.recipeService.getRecipe(machine.selectedRecipeId);
     if (!recipe) return;
 
+    // Appliquer les bonus de recherche
+    const researchBonus = this.researchService.getBonusForMachineType(machine.type);
+    let effectiveDuration = recipe.duration;
+    
+    // Appliquer le bonus de vitesse (réduction du temps)
+    if (researchBonus.speed > 0) {
+      effectiveDuration = recipe.duration / (1 + researchBonus.speed / 100);
+    }
+
     const now = Date.now();
     const timeSinceLastProduction = (now - machine.lastProductionTime) / 1000; // en secondes
     
-    // Calculer combien de cycles complets on peut faire
-    const completedCycles = Math.floor(timeSinceLastProduction / recipe.duration);
+    // Calculer combien de cycles complets on peut faire avec la durée modifiée
+    const completedCycles = Math.floor(timeSinceLastProduction / effectiveDuration);
     
     if (completedCycles > 0) {
       // Vérifier si on a les ressources nécessaires
@@ -62,17 +73,26 @@ export class ProductionService {
         // Consommer les ressources d'entrée
         this.consumeInputs(recipe, completedCycles);
         
-        // Produire les ressources de sortie
-        this.produceOutputs(recipe, completedCycles);
+        // Produire les ressources de sortie (avec bonus potentiel)
+        let outputMultiplier = 1;
+        if (researchBonus.bonusOutput > 0) {
+          // Chance de production bonus
+          for (let i = 0; i < completedCycles; i++) {
+            if (Math.random() * 100 < researchBonus.bonusOutput) {
+              outputMultiplier += 0.1; // 10% de bonus par cycle réussi
+            }
+          }
+        }
         
-        // Mettre à jour le temps de production
-        const newLastProductionTime = machine.lastProductionTime + (completedCycles * recipe.duration * 1000);
+        this.produceOutputs(recipe, Math.floor(completedCycles * outputMultiplier));
+        
+        // Mettre à jour le temps de production avec la durée modifiée
+        const newLastProductionTime = machine.lastProductionTime + (completedCycles * effectiveDuration * 1000);
         this.machineService.updateMachineProductionTime(machineId);
         
-        console.log(`${machine.name} a produit ${completedCycles} cycle(s) de ${recipe.name}`);
+        console.log(`${machine.name} a produit ${completedCycles} cycle(s) de ${recipe.name} (bonus: +${researchBonus.speed}% vitesse, +${researchBonus.bonusOutput}% bonus)`);
       } else {
         console.log(`${machine.name} ne peut pas produire: ressources insuffisantes`);
-        // La machine reste active mais ne produit pas
       }
     }
   }
@@ -152,16 +172,25 @@ export class ProductionService {
     const recipe = this.recipeService.getRecipe(machine.selectedRecipeId);
     if (!recipe) return null;
 
+    // Appliquer les bonus de recherche
+    const researchBonus = this.researchService.getBonusForMachineType(machine.type);
+    let effectiveDuration = recipe.duration;
+    
+    // Appliquer le bonus de vitesse
+    if (researchBonus.speed > 0) {
+      effectiveDuration = recipe.duration / (1 + researchBonus.speed / 100);
+    }
+
     let progress = 0;
     
     if (machine.isActive) {
-      // Machine active : calcul normal du progrès
+      // Machine active : calcul normal du progrès avec durée modifiée
       const now = Date.now();
       const timeSinceLastProduction = (now - machine.lastProductionTime) / 1000;
-      progress = Math.min((timeSinceLastProduction % recipe.duration) / recipe.duration, 1);
+      progress = Math.min((timeSinceLastProduction % effectiveDuration) / effectiveDuration, 1);
     } else {
       // Machine en pause : on garde le progrès sauvegardé
-      progress = Math.min(machine.pausedProgress / recipe.duration, 1);
+      progress = Math.min(machine.pausedProgress / effectiveDuration, 1);
     }
 
     return {
@@ -169,7 +198,8 @@ export class ProductionService {
       recipe,
       progress,
       canProduce: this.canProduceRecipe(recipe),
-      cyclesPerMinute: 60 / recipe.duration
+      cyclesPerMinute: 60 / effectiveDuration, // Cycles par minute avec bonus
+      researchBonus: researchBonus // Ajouter les bonus pour l'affichage
     };
   }
 

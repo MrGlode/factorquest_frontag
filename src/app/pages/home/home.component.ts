@@ -2,130 +2,94 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 
+import { NavigationService, NavigationTab } from '../../services/navigation';
 import { GameStateService } from '../../services/game-state';
-import { InventoryService } from '../../services/inventory';
 import { MachineService } from '../../services/machine';
-import { RecipeService } from '../../services/recipe';
-import { ProductionService } from '../../services/production';
 
-import { GameState, Inventory, Machine, Resource } from '../../models/game.model';
+import { Dashboard } from '../dashboard/dashboard';
+import { Mines } from '../mines/mines';
+import { Furnaces } from '../furnaces/furnaces';
+import { Assemblers } from '../assemblers/assemblers';
+
+import { GameState } from '../../models/game.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    Dashboard,
+    Mines,
+    Furnaces,
+    Assemblers
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
   
   gameState$: Observable<GameState>;
-  inventory$: Observable<Inventory>;
-  machines$: Observable<Machine[]>;
-  
-  resources: Resource[] = [];
-  
-  // États pour l'interface
-  selectedMachineType: 'mine' | 'furnace' | 'assembler' = 'mine';
-  showShop = false;
-  
-  // Types de machines pour l'itération dans le template
-  machineTypes: ('mine' | 'furnace' | 'assembler')[] = ['mine', 'furnace', 'assembler'];
-  
-  // Référence à Object pour le template
-  Object = Object;
+  currentTab$: Observable<NavigationTab>;
   
   private subscriptions: Subscription[] = [];
 
   constructor(
+    private navigationService: NavigationService,
     private gameStateService: GameStateService,
-    private inventoryService: InventoryService,
-    private machineService: MachineService,
-    private recipeService: RecipeService,
-    private productionService: ProductionService
+    private machineService: MachineService
   ) {
     this.gameState$ = this.gameStateService.getGameState$();
-    this.inventory$ = this.inventoryService.getInventory$();
-    this.machines$ = this.machineService.getMachines$();
+    this.currentTab$ = this.navigationService.getCurrentTab$();
   }
 
   ngOnInit(): void {
-    this.resources = this.recipeService.getResources();
+    // Mettre à jour les badges des onglets avec le nombre de machines
+    this.updateTabBadges();
+    
+    // S'abonner aux changements de machines pour mettre à jour les badges
+    const machinesSub = this.machineService.getMachines$().subscribe(() => {
+      this.updateTabBadges();
+    });
+    this.subscriptions.push(machinesSub);
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  // Acheter une machine
-  buyMachine(type: 'mine' | 'furnace' | 'assembler'): void {
-    const cost = this.machineService.getMachineCost(type);
+  // Navigation entre onglets
+  switchTab(tab: NavigationTab): void {
+    this.navigationService.setCurrentTab(tab);
+  }
+
+  // Obtenir tous les onglets
+  getTabs() {
+    return this.navigationService.getTabs();
+  }
+
+  // Vérifier si un onglet est actif
+  isTabActive(tab: NavigationTab): boolean {
+    return this.navigationService.getCurrentTab() === tab;
+  }
+
+  // Mettre à jour les badges avec le nombre de machines
+  private updateTabBadges(): void {
+    const machines = this.machineService.getMachines();
     
-    if (this.gameStateService.canAfford(cost)) {
-      if (this.gameStateService.spendMoney(cost)) {
-        const machine = this.machineService.buyMachine(type);
-        console.log(`Machine achetée: ${machine.name} pour ${cost} crédits`);
-      }
-    } else {
-      alert('Pas assez d\'argent !');
-    }
-  }
-
-  // Changer la recette d'une machine
-  setMachineRecipe(machineId: string, recipeId: string): void {
-    this.machineService.setMachineRecipe(machineId, recipeId);
-  }
-
-  // Activer/désactiver une machine
-  toggleMachine(machineId: string): void {
-    // Récupérer le progrès actuel avant de mettre en pause
-    const stats = this.productionService.getMachineStats(machineId);
-    const currentProgress = stats ? (stats.progress * stats.recipe.duration) : 0;
+    const mineCount = machines.filter(m => m.type === 'mine').length;
+    const furnaceCount = machines.filter(m => m.type === 'furnace').length;
+    const assemblerCount = machines.filter(m => m.type === 'assembler').length;
     
-    this.machineService.toggleMachine(machineId, currentProgress);
-  }
-
-  // Obtenir les recettes pour un type de machine
-  getRecipesForMachineType(type: 'mine' | 'furnace' | 'assembler') {
-    return this.recipeService.getRecipesByMachineType(type);
-  }
-
-  // Obtenir une ressource par ID
-  getResource(resourceId: string): Resource | undefined {
-    return this.recipeService.getResource(resourceId);
-  }
-
-  // Obtenir la quantité d'une ressource
-  getResourceQuantity(resourceId: string): number {
-    return this.inventoryService.getResourceQuantity(resourceId);
-  }
-
-  // Obtenir les statistiques d'une machine
-  getMachineStats(machineId: string) {
-    return this.productionService.getMachineStats(machineId);
-  }
-
-  // Filtrer les machines par type
-  getMachinesByType(machines: Machine[], type: 'mine' | 'furnace' | 'assembler'): Machine[] {
-    return machines.filter(m => m.type === type);
-  }
-
-  // Basculer l'affichage de la boutique
-  toggleShop(): void {
-    this.showShop = !this.showShop;
-  }
-
-  // Obtenir les infos d'un type de machine
-  getMachineTypeInfo(type: 'mine' | 'furnace' | 'assembler') {
-    return this.machineService.getMachineTypeInfo(type);
+    this.navigationService.updateTabBadge('mines', mineCount);
+    this.navigationService.updateTabBadge('furnaces', furnaceCount);
+    this.navigationService.updateTabBadge('assemblers', assemblerCount);
   }
 
   // Debug: reset du jeu
   resetGame(): void {
     if (confirm('Êtes-vous sûr de vouloir recommencer ?')) {
       this.gameStateService.reset();
-      this.inventoryService.reset();
-      this.machineService.reset();
+      this.navigationService.setCurrentTab('dashboard');
       console.log('Jeu réinitialisé !');
     }
   }

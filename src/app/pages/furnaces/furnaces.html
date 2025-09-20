@@ -1,0 +1,140 @@
+<div class="furnaces-page">
+  
+  <!-- Inventaire des lingots/plaques -->
+  <div class="processed-inventory-section">
+    <h2>🔥 Inventaire des Lingots & Plaques</h2>
+    <div class="inventory-grid" *ngIf="inventory$ | async as inventory">
+      <div class="inventory-item" *ngFor="let resource of processedResources">
+        <ng-container *ngIf="getResourceQuantity(resource.id) > 0">
+          <span class="resource-icon">{{ resource.icon }}</span>
+          <span class="resource-name">{{ resource.name }}</span>
+          <span class="resource-quantity">{{ getResourceQuantity(resource.id) }}</span>
+        </ng-container>
+      </div>
+      <div *ngIf="hasNoProcessedMaterials()" class="empty-inventory">
+        Aucun lingot en stock - Démarrez vos fours pour fondre des minerais !
+      </div>
+    </div>
+  </div>
+
+  <!-- Boutique de fours -->
+  <div class="furnace-shop-section">
+    <h2>🛒 Acheter des Fours</h2>
+    <div class="shop-item">
+      <div class="machine-info">
+        <span class="machine-icon">{{ getFurnaceInfo().icon }}</span>
+        <span class="machine-name">{{ getFurnaceInfo().name }}</span>
+        <span class="machine-cost">{{ getFurnaceInfo().cost }} 💰</span>
+      </div>
+      <button 
+        class="buy-btn"
+        [disabled]="!canAffordFurnace()"
+        (click)="buyFurnace()">
+        {{ canAffordFurnace() ? 'Acheter' : 'Pas assez d\'argent' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Gestion des fours -->
+  <div class="furnaces-management-section" *ngIf="machines$ | async as machines">
+    <h2>🔥 Mes Fours ({{ getFurnaces(machines).length }})</h2>
+    
+    <div *ngIf="getFurnaces(machines).length === 0" class="no-furnaces">
+      <p>Aucun four ! Achetez votre premier four pour commencer la fonte des minerais.</p>
+    </div>
+
+    <div class="furnaces-grid" *ngIf="getFurnaces(machines).length > 0">
+      <div class="furnace-card" *ngFor="let furnace of getFurnaces(machines)">
+        
+        <div class="furnace-header">
+          <h3>{{ furnace.name }}</h3>
+          <button 
+            class="toggle-btn"
+            [class.active]="furnace.isActive"
+            [disabled]="!furnace.selectedRecipeId"
+            (click)="toggleFurnace(furnace.id)">
+            {{ furnace.isActive ? '⏸️' : '▶️' }}
+          </button>
+        </div>
+        
+        <div class="furnace-config">
+          <label>Recette de fonte :</label>
+          <select 
+            [value]="furnace.selectedRecipeId || ''"
+            (change)="setFurnaceRecipe(furnace.id, $any($event.target).value)">
+            <option value="">Sélectionner une recette...</option>
+            <option 
+              *ngFor="let recipe of getFurnaceRecipes()" 
+              [value]="recipe.id">
+              {{ recipe.name }} ({{ recipe.duration }}s)
+            </option>
+          </select>
+        </div>
+
+        <div class="furnace-status" *ngIf="furnace.selectedRecipeId && getFurnaceStats(furnace.id) as stats">
+          
+          <!-- Ressources nécessaires -->
+          <div class="recipe-requirements">
+            <div class="inputs">
+              <strong>Consomme :</strong>
+              <span *ngFor="let input of stats.recipe.inputs; let last = last">
+                {{ input.quantity }}x {{ getResource(input.resourceId)?.icon }}
+                {{ getResource(input.resourceId)?.name }}
+                <span class="stock">({{ getResourceQuantity(input.resourceId) }} en stock)</span>
+                <span *ngIf="!last">, </span>
+              </span>
+            </div>
+            <div class="outputs">
+              <strong>Produit :</strong>
+              {{ stats.recipe.outputs[0].quantity }}x 
+              {{ getResource(stats.recipe.outputs[0].resourceId)?.icon }}
+              {{ getResource(stats.recipe.outputs[0].resourceId)?.name }}
+            </div>
+          </div>
+
+          <!-- Statut de production -->
+          <div class="production-info">
+            <div class="production-rate">
+              ⚡ {{ stats.cyclesPerMinute.toFixed(1) }} cycles/min
+            </div>
+            <div class="machine-state" [class.active]="furnace.isActive" [class.blocked]="!canProduceRecipe(furnace.id)">
+              <ng-container *ngIf="furnace.isActive">
+                <span *ngIf="canProduceRecipe(furnace.id)">🟢 En fonctionnement</span>
+                <span *ngIf="!canProduceRecipe(furnace.id)">🟠 En attente de ressources</span>
+              </ng-container>
+              <span *ngIf="!furnace.isActive">🔴 Arrêté</span>
+            </div>
+          </div>
+          
+          <!-- Barre de progression -->
+          <div class="progress-section" *ngIf="furnace.isActive">
+            <div class="progress-label">Fonte en cours...</div>
+            <div class="progress-bar">
+              <div class="progress" [style.width.%]="stats.progress * 100"></div>
+            </div>
+            <div class="progress-time">
+              {{ (stats.progress * stats.recipe.duration).toFixed(1) }}s / {{ stats.recipe.duration }}s
+            </div>
+          </div>
+          
+          <div class="paused-section" *ngIf="!furnace.isActive && furnace.selectedRecipeId">
+            <div class="paused-label">⏸️ Production en pause</div>
+            <div class="progress-bar paused">
+              <div class="progress" [style.width.%]="stats.progress * 100"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="furnace-actions">
+          <button 
+            class="delete-btn" 
+            (click)="deleteFurnace(furnace.id)"
+            title="Supprimer le four">
+            🗑️ Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

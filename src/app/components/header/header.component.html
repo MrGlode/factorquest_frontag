@@ -1,1 +1,25 @@
-<p>header works!</p>
+<div class="game-header">
+  <div class="header-top">
+    <div class="game-stats" *ngIf="gameState$ | async as gameState">
+      <div class="money">
+        💰 {{ gameState.money }} crédits
+      </div>
+      <div class="actions">
+        <button class="reset-btn" (click)="resetGame()">🔄 Reset</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Navigation par onglets -->
+  <nav class="tab-navigation">
+    <button 
+      *ngFor="let tab of getTabs()" 
+      class="tab-button"
+      [class.active]="isTabActive(tab.id)"
+      (click)="switchTab(tab.id)">
+      <span class="tab-icon">{{ tab.icon }}</span>
+      <span class="tab-label">{{ tab.label }}</span>
+      <span class="tab-badge" *ngIf="tab.badge">{{ tab.badge }}</span>
+    </button>
+  </nav>
+</div>

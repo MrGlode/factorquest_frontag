@@ -1,0 +1,150 @@
+// Header restructuré
+.game-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #CD7F32 0%, #8B4513 50%, #B8860B 100%);
+  color: #F4E4BC;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  border: 3px solid #B8860B;
+  overflow: hidden;
+
+  .header-top {
+    padding: 20px 30px;
+    border-bottom: 2px solid rgba(244,228,188,0.2);
+
+    .game-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+
+      .money {
+        font-size: 1.4em;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+      }
+
+      .actions {
+        .reset-btn {
+          padding: 12px 20px;
+          border: 2px solid #B8860B;
+          border-radius: 8px;
+          background: linear-gradient(145deg, #B7410E 0%, #8B0000 100%);
+          color: #F4E4BC;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-family: 'Georgia', 'Times New Roman', serif;
+          font-weight: bold;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+
+          &:hover {
+            background: linear-gradient(145deg, #DC143C 0%, #B7410E 100%);
+            transform: translateY(-2px);
+          }
+        }
+      }
+    }
+  }
+
+  // Navigation par onglets steampunk
+  .tab-navigation {
+    display: flex;
+    background: rgba(0,0,0,0.2);
+    
+    .tab-button {
+      flex: 1;
+      padding: 15px 20px;
+      border: none;
+      background: transparent;
+      color: rgba(244,228,188,0.7);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-weight: 500;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      border-right: 1px solid rgba(244,228,188,0.2);
+
+      &:last-child {
+        border-right: none;
+      }
+
+      .tab-icon {
+        font-size: 1.5em;
+        transition: transform 0.2s ease;
+      }
+
+      .tab-label {
+        font-size: 0.9em;
+        white-space: nowrap;
+      }
+
+      .tab-badge {
+        position: absolute;
+        top: 8px;
+        right: 15px;
+        background: linear-gradient(145deg, #DAA520 0%, #B8860B 100%);
+        color: #2F1B14;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 0.7em;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #CD7F32;
+      }
+
+      &:hover {
+        background: rgba(244,228,188,0.1);
+        color: #F4E4BC;
+
+        .tab-icon {
+          transform: scale(1.1);
+        }
+      }
+
+      &.active {
+        background: linear-gradient(145deg, #B8860B 0%, #DAA520 100%);
+        color: #2F1B14;
+        position: relative;
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: #DAA520;
+        }
+
+        .tab-badge {
+          background: linear-gradient(145deg, #2F1B14 0%, #3D2914 100%);
+          color: #DAA520;
+        }
+      }
+
+      // Responsive
+      @media (max-width: 768px) {
+        .tab-label {
+          display: none;
+        }
+        
+        .tab-icon {
+          font-size: 1.8em;
+        }
+      }
+    }
+  }
+}
