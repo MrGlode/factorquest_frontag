@@ -1,7 +1,10 @@
 .app-container {
   background: #2F1B14;
   min-height: 100vh;
-  padding: 20px;
+  padding-top: 180px; // Espace pour le header fixe
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
 }
 
 .page-content {
