@@ -1,0 +1,626 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Machines API
+  description: |
+    API pour la gestion des machines dans FactoQuest.
+    Gère l'achat, la configuration, l'amélioration et le contrôle des machines (mines, fours, assembleurs).
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/machines/v1'
+security:
+  - default: []
+tags:
+  - name: machines
+    description: Operations related to machines management.
+paths:
+  /:
+    get:
+      tags:
+        - machines
+      description: Liste toutes les machines du joueur
+      operationId: getMachines
+      responses:
+        '200':
+          description: Liste des machines récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machines:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Machine'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /purchase:
+    post:
+      tags:
+        - machines
+      description: Acheter une nouvelle machine
+      operationId: purchaseMachine
+      requestBody:
+        $ref: '#/components/requestBodies/MachinePurchase'
+      responses:
+        '201':
+          description: Machine achetée avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachinePurchaseResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Fonds insuffisants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  '/{machineId}':
+    get:
+      tags:
+        - machines
+      description: Récupère les détails d'une machine
+      operationId: getMachineById
+      responses:
+        '200':
+          description: Détails de la machine récupérés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Machine'
+        '404':
+          description: Machine non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    delete:
+      tags:
+        - machines
+      description: Vendre une machine
+      operationId: sellMachine
+      responses:
+        '200':
+          description: Machine vendue avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachineSaleResponse'
+        '404':
+          description: Machine non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    parameters:
+      - name: machineId
+        in: path
+        description: Identifiant de la machine
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: string
+  '/{machineId}/recipe':
+    put:
+      tags:
+        - machines
+      description: Changer la recette d'une machine
+      operationId: setMachineRecipe
+      requestBody:
+        description: Nouvelle recette à assigner
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipeId:
+                  type: string
+                  example: "copper_mining"
+              required:
+                - recipeId
+        required: true
+      responses:
+        '200':
+          description: Recette mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Machine non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    parameters:
+      - name: machineId
+        in: path
+        description: Identifiant de la machine
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: string
+  '/{machineId}/toggle':
+    put:
+      tags:
+        - machines
+      description: Activer/désactiver une machine
+      operationId: toggleMachine
+      requestBody:
+        description: Nouvel état d'activation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+                  example: true
+              required:
+                - isActive
+        required: true
+      responses:
+        '200':
+          description: État de la machine mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Machine non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    parameters:
+      - name: machineId
+        in: path
+        description: Identifiant de la machine
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: string
+  '/{machineId}/upgrade':
+    post:
+      tags:
+        - machines
+      description: Améliorer une machine
+      operationId: upgradeMachine
+      requestBody:
+        $ref: '#/components/requestBodies/MachineUpgrade'
+      responses:
+        '200':
+          description: Machine améliorée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachineUpgradeResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Fonds insuffisants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Machine non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    parameters:
+      - name: machineId
+        in: path
+        description: Identifiant de la machine
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: string
+
+components:
+  schemas:
+    MachineType:
+      title: Type de machine
+      type: string
+      enum: [mine, furnace, assembler]
+    
+    Position:
+      title: Position
+      type: object
+      required:
+        - x
+        - y
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+    
+    Machine:
+      title: Machine
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - level
+        - isActive
+        - lastProductionTime
+        - pausedProgress
+        - efficiency
+        - position
+      properties:
+        id:
+          type: string
+          example: "mine_001"
+        type:
+          $ref: '#/components/schemas/MachineType'
+        name:
+          type: string
+          example: "Mine de Fer #1"
+        level:
+          type: integer
+          minimum: 1
+          example: 1
+        selectedRecipeId:
+          type: string
+          example: "iron_mining"
+        isActive:
+          type: boolean
+          example: true
+        lastProductionTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:25:00Z"
+        pausedProgress:
+          type: number
+          minimum: 0
+          example: 0
+        efficiency:
+          type: number
+          minimum: 0
+          maximum: 200
+          example: 100
+        upgrades:
+          type: array
+          items:
+            type: string
+          example: ["speed_boost_1"]
+        position:
+          $ref: '#/components/schemas/Position'
+    
+    MachinePurchaseResponse:
+      title: Réponse achat de machine
+      type: object
+      required:
+        - success
+        - machine
+        - newBalance
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        machine:
+          $ref: '#/components/schemas/Machine'
+        newBalance:
+          type: number
+          example: 9500
+        message:
+          type: string
+          example: "Mine achetée avec succès"
+    
+    MachineUpgradeResponse:
+      title: Réponse amélioration de machine
+      type: object
+      required:
+        - success
+        - machine
+        - newBalance
+        - upgradeApplied
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        machine:
+          $ref: '#/components/schemas/Machine'
+        newBalance:
+          type: number
+          example: 8500
+        upgradeApplied:
+          type: object
+          properties:
+            type:
+              type: string
+            level:
+              type: integer
+            bonus:
+              type: number
+        message:
+          type: string
+          example: "Machine améliorée avec succès"
+    
+    MachineSaleResponse:
+      title: Réponse vente de machine
+      type: object
+      required:
+        - success
+        - refundAmount
+        - newBalance
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        refundAmount:
+          type: number
+          example: 250
+        newBalance:
+          type: number
+          example: 10250
+        message:
+          type: string
+          example: "Machine vendue avec succès"
+    
+    ApiResponse:
+      title: Réponse API générique
+      type: object
+      required:
+        - success
+        - message
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Opération effectuée avec succès"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  requestBodies:
+    MachinePurchase:
+      description: Demande d'achat de machine
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - machineType
+              - position
+            properties:
+              machineType:
+                $ref: '#/components/schemas/MachineType'
+              position:
+                $ref: '#/components/schemas/Position'
+      required: true
+    
+    MachineUpgrade:
+      description: Demande d'amélioration de machine
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - upgradeType
+              - level
+            properties:
+              upgradeType:
+                type: string
+                enum: [speed, efficiency, capacity]
+              level:
+                type: integer
+                minimum: 2
+                example: 2
+      required: true
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/machines/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/machines/v1/'
+  type: http
+x-wso2-basePath: /machines/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

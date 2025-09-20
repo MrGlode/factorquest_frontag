@@ -1,0 +1,553 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Research API
+  description: |
+    API pour le système de recherche et laboratoires dans FactoQuest.
+    Gère les technologies, laboratoires, et la progression de la recherche.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/research/v1'
+security:
+  - default: []
+tags:
+  - name: technologies
+    description: Operations related to technologies management.
+  - name: laboratories
+    description: Operations related to laboratories management.
+  - name: research
+    description: Operations related to research progress.
+paths:
+  /technologies:
+    get:
+      tags:
+        - technologies
+      description: Liste toutes les technologies
+      operationId: getTechnologies
+      responses:
+        '200':
+          description: Liste des technologies récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  technologies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Research'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /laboratories:
+    get:
+      tags:
+        - laboratories
+      description: Liste des laboratoires du joueur
+      operationId: getLaboratories
+      responses:
+        '200':
+          description: Liste des laboratoires récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  laboratories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Laboratory'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /laboratories/purchase:
+    post:
+      tags:
+        - laboratories
+      description: Acheter un laboratoire
+      operationId: purchaseLaboratory
+      requestBody:
+        $ref: '#/components/requestBodies/LaboratoryPurchase'
+      responses:
+        '201':
+          description: Laboratoire acheté avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaboratoryPurchaseResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Fonds insuffisants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /start:
+    post:
+      tags:
+        - research
+      description: Démarrer une recherche
+      operationId: startResearch
+      requestBody:
+        $ref: '#/components/requestBodies/ResearchStart'
+      responses:
+        '201':
+          description: Recherche démarrée avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchStartResponse'
+        '400':
+          description: Erreur lors du démarrage de la recherche
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /progress:
+    get:
+      tags:
+        - research
+      description: Progression des recherches actives
+      operationId: getResearchProgress
+      responses:
+        '200':
+          description: Progression des recherches récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeResearches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResearchProgress'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+
+components:
+  schemas:
+    LaboratoryType:
+      title: Type de laboratoire
+      type: string
+      enum: [basic, advanced, institute, mining, metallurgy, mechanical]
+    
+    ResourceQuantity:
+      title: Quantité de ressource
+      type: object
+      required:
+        - resourceId
+        - quantity
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 0
+          example: 50
+    
+    ResearchEffect:
+      title: Effet de recherche
+      type: object
+      required:
+        - type
+        - target
+        - value
+        - description
+      properties:
+        type:
+          type: string
+          enum: [speed, efficiency, unlock_recipe, cost_reduction, bonus_output]
+        target:
+          type: string
+          enum: [mine, furnace, assembler, all]
+        value:
+          type: number
+        description:
+          type: string
+    
+    Research:
+      title: Recherche
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - category
+        - requirements
+        - duration
+        - prerequisites
+        - effects
+        - isUnlocked
+        - isCompleted
+      properties:
+        id:
+          type: string
+          example: "mining_speed_1"
+        name:
+          type: string
+          example: "Extraction Rapide I"
+        description:
+          type: string
+          example: "Améliore la vitesse d'extraction de 25%"
+        category:
+          type: string
+          enum: [mine, furnace, assembler, general]
+        requirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        duration:
+          type: number
+          minimum: 1
+          example: 300
+        prerequisites:
+          type: array
+          items:
+            type: string
+          example: []
+        effects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResearchEffect'
+        isUnlocked:
+          type: boolean
+          example: true
+        isCompleted:
+          type: boolean
+          example: false
+    
+    Laboratory:
+      title: Laboratoire
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - level
+        - researchSpeed
+        - maxSimultaneousResearch
+        - currentResearch
+      properties:
+        id:
+          type: string
+          example: "lab_001"
+        name:
+          type: string
+          example: "Laboratoire Principal"
+        type:
+          $ref: '#/components/schemas/LaboratoryType'
+        level:
+          type: integer
+          minimum: 1
+          example: 1
+        researchSpeed:
+          type: number
+          minimum: 0.1
+          example: 1.0
+        maxSimultaneousResearch:
+          type: integer
+          minimum: 1
+          example: 1
+        currentResearch:
+          type: array
+          items:
+            type: string
+          example: ["mining_speed_1"]
+        specialization:
+          type: string
+          enum: [mine, furnace, assembler, general]
+          example: "general"
+    
+    ResearchProgress:
+      title: Progression de recherche
+      type: object
+      required:
+        - researchId
+        - laboratoryId
+        - startTime
+        - estimatedEndTime
+        - progress
+      properties:
+        researchId:
+          type: string
+          example: "mining_speed_1"
+        laboratoryId:
+          type: string
+          example: "lab_001"
+        startTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:00:00Z"
+        estimatedEndTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:05:00Z"
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.6
+    
+    LaboratoryPurchaseResponse:
+      title: Réponse achat de laboratoire
+      type: object
+      required:
+        - success
+        - laboratory
+        - newBalance
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        laboratory:
+          $ref: '#/components/schemas/Laboratory'
+        newBalance:
+          type: number
+          example: 7000
+        message:
+          type: string
+          example: "Laboratoire acheté avec succès"
+    
+    ResearchStartResponse:
+      title: Réponse démarrage de recherche
+      type: object
+      required:
+        - success
+        - researchProgress
+        - resourcesConsumed
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        researchProgress:
+          $ref: '#/components/schemas/ResearchProgress'
+        resourcesConsumed:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        message:
+          type: string
+          example: "Recherche démarrée avec succès"
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  requestBodies:
+    LaboratoryPurchase:
+      description: Demande d'achat de laboratoire
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - laboratoryType
+            properties:
+              laboratoryType:
+                $ref: '#/components/schemas/LaboratoryType'
+              specialization:
+                type: string
+                enum: [mine, furnace, assembler, general]
+                example: "general"
+      required: true
+    
+    ResearchStart:
+      description: Demande de démarrage de recherche
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - researchId
+              - laboratoryId
+            properties:
+              researchId:
+                type: string
+                example: "mining_speed_1"
+              laboratoryId:
+                type: string
+                example: "lab_001"
+      required: true
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/research/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/research/v1/'
+  type: http
+x-wso2-basePath: /research/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

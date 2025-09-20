@@ -1,0 +1,519 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Market API
+  description: |
+    API pour le système de marché dans FactoQuest.
+    Gère les prix, les ventes de ressources et les commandes spéciales.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/market/v1'
+security:
+  - default: []
+tags:
+  - name: market
+    description: Operations related to market management.
+  - name: orders
+    description: Operations related to special orders management.
+paths:
+  /prices:
+    get:
+      tags:
+        - market
+      description: Prix actuels du marché
+      operationId: getMarketPrices
+      responses:
+        '200':
+          description: Prix du marché récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  marketPrices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MarketPrice'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /sell:
+    post:
+      tags:
+        - market
+      description: Vendre des ressources
+      operationId: sellResources
+      requestBody:
+        $ref: '#/components/requestBodies/MarketSale'
+      responses:
+        '201':
+          description: Ressources vendues avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketSaleResponse'
+        '400':
+          description: Erreur lors de la vente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /orders:
+    get:
+      tags:
+        - orders
+      description: Commandes spéciales disponibles
+      operationId: getSpecialOrders
+      responses:
+        '200':
+          description: Commandes spéciales récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  specialOrders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpecialOrder'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  '/orders/{orderId}/complete':
+    post:
+      tags:
+        - orders
+      description: Terminer une commande spéciale
+      operationId: completeSpecialOrder
+      requestBody:
+        $ref: '#/components/requestBodies/OrderCompletion'
+      responses:
+        '201':
+          description: Commande terminée avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCompletionResponse'
+        '400':
+          description: Erreur lors de la completion de la commande
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Commande non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    parameters:
+      - name: orderId
+        in: path
+        description: Identifiant de la commande
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+components:
+  schemas:
+    ClientType:
+      title: Type de client
+      type: string
+      enum: [noble, factory, government, merchant]
+    
+    ResourceQuantity:
+      title: Quantité de ressource
+      type: object
+      required:
+        - resourceId
+        - quantity
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 0
+          example: 50
+    
+    MarketPrice:
+      title: Prix du marché
+      type: object
+      required:
+        - resourceId
+        - basePrice
+        - currentPrice
+        - demand
+        - trend
+        - lastUpdate
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        basePrice:
+          type: number
+          minimum: 0
+          example: 5
+        currentPrice:
+          type: number
+          minimum: 0
+          example: 6.2
+        demand:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.8
+        trend:
+          type: string
+          enum: [rising, stable, falling]
+          example: "rising"
+        lastUpdate:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+    
+    MarketTransaction:
+      title: Transaction de marché
+      type: object
+      required:
+        - resourceId
+        - quantity
+        - expectedPrice
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 1
+          example: 100
+        expectedPrice:
+          type: number
+          minimum: 0
+          example: 6.2
+    
+    SpecialOrder:
+      title: Commande spéciale
+      type: object
+      required:
+        - id
+        - clientName
+        - clientType
+        - requirements
+        - reward
+        - bonus
+        - deadline
+        - description
+      properties:
+        id:
+          type: string
+          example: "order_001"
+        clientName:
+          type: string
+          example: "Seigneur Volkan"
+        clientType:
+          $ref: '#/components/schemas/ClientType'
+        requirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        reward:
+          type: number
+          minimum: 0
+          example: 2500
+        bonus:
+          type: number
+          minimum: 0
+          example: 500
+        deadline:
+          type: string
+          format: date-time
+          example: "2025-01-16T10:00:00Z"
+        description:
+          type: string
+          example: "Le Seigneur Volkan a besoin d'engrenages pour ses machines de guerre."
+    
+    Inventory:
+      title: Inventaire du joueur
+      type: object
+      additionalProperties:
+        type: number
+      example:
+        iron_ore: 150
+        copper_ore: 75
+        coal: 200
+    
+    MarketSaleResponse:
+      title: Réponse vente de marché
+      type: object
+      required:
+        - success
+        - transactions
+        - totalEarned
+        - newBalance
+        - updatedInventory
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              resourceId:
+                type: string
+              quantity:
+                type: number
+              unitPrice:
+                type: number
+              totalValue:
+                type: number
+              timestamp:
+                type: string
+                format: date-time
+        totalEarned:
+          type: number
+          example: 620
+        newBalance:
+          type: number
+          example: 10620
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        message:
+          type: string
+          example: "Ressources vendues avec succès"
+    
+    OrderCompletionResponse:
+      title: Réponse completion de commande
+      type: object
+      required:
+        - success
+        - order
+        - rewardEarned
+        - bonusEarned
+        - totalEarned
+        - newBalance
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        order:
+          $ref: '#/components/schemas/SpecialOrder'
+        rewardEarned:
+          type: number
+          example: 2500
+        bonusEarned:
+          type: number
+          example: 500
+        totalEarned:
+          type: number
+          example: 3000
+        newBalance:
+          type: number
+          example: 13000
+        message:
+          type: string
+          example: "Commande terminée avec succès"
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  requestBodies:
+    MarketSale:
+      description: Demande de vente sur le marché
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - transactions
+            properties:
+              transactions:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MarketTransaction'
+      required: true
+    
+    OrderCompletion:
+      description: Demande de completion de commande
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - resources
+            properties:
+              resources:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceQuantity'
+      required: true
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/market/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/market/v1/'
+  type: http
+x-wso2-basePath: /market/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300
