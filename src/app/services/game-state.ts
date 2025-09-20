@@ -8,7 +8,7 @@ import { GameState } from '../models/game.model';
 export class GameStateService {
 
   private gameState: GameState = {
-    money: 1000, // Argent de départ
+    money: 10000, // Argent de départ
     lastSaveTime: Date.now(),
     totalPlayTime: 0
   };
@@ -110,7 +110,7 @@ export class GameStateService {
   // Reset pour debug
   reset(): void {
     this.gameState = {
-      money: 1000,
+      money: 10000,
       lastSaveTime: Date.now(),
       totalPlayTime: 0
     };
