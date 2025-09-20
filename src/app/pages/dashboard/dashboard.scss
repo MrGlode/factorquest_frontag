@@ -1,0 +1,528 @@
+.dashboard-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #F4E4BC;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// En-tête de bienvenue
+.welcome-section {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+  border-radius: 20px;
+  border: 3px solid #CD7F32;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #DAA520 0%, #B8860B 50%, #DAA520 100%);
+  }
+
+  h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+    color: #DAA520;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.6);
+    font-weight: bold;
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: 1.2em;
+    color: #F0E68C;
+    font-style: italic;
+    opacity: 0.9;
+  }
+}
+
+// Sections communes
+.kpi-section, .efficiency-section, .resources-section, .financial-section, .quick-actions-section {
+  background: linear-gradient(145deg, #F4E4BC 0%, #F0E68C 100%);
+  color: #2F1B14;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  border: 3px solid #CD7F32;
+  position: relative;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #2F1B14;
+    font-size: 1.6em;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #CD7F32;
+    padding-bottom: 10px;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: #DAA520;
+      border-radius: 2px;
+    }
+  }
+}
+
+// KPIs principaux
+.kpi-section {
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+
+    .kpi-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #CD7F32;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        opacity: 0.8;
+      }
+
+      &.money {
+        background: linear-gradient(145deg, #228B22 0%, #32CD32 100%);
+        color: #F4E4BC;
+        &::before { background: #DAA520; }
+      }
+
+      &.machines {
+        background: linear-gradient(145deg, #4682B4 0%, #87CEEB 100%);
+        color: #2F1B14;
+        &::before { background: #CD7F32; }
+      }
+
+      &.production {
+        background: linear-gradient(145deg, #DC143C 0%, #FF6347 100%);
+        color: #F4E4BC;
+        &::before { background: #DAA520; }
+      }
+
+      &.resources {
+        background: linear-gradient(145deg, #8A2BE2 0%, #9370DB 100%);
+        color: #F4E4BC;
+        &::before { background: #CD7F32; }
+      }
+
+      &:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      }
+
+      .kpi-icon {
+        font-size: 2.5em;
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+      }
+
+      .kpi-content {
+        flex: 1;
+
+        .kpi-label {
+          font-size: 0.9em;
+          font-weight: bold;
+          opacity: 0.8;
+          margin-bottom: 5px;
+        }
+
+        .kpi-value {
+          font-size: 1.8em;
+          font-weight: bold;
+          line-height: 1;
+          margin-bottom: 2px;
+        }
+
+        .kpi-unit {
+          font-size: 0.8em;
+          opacity: 0.7;
+          font-style: italic;
+        }
+      }
+    }
+  }
+}
+
+// Efficacité des machines
+.efficiency-section {
+  .efficiency-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+
+    .efficiency-card {
+      background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+      color: #F4E4BC;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #B8860B;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+
+      .machine-type {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+
+        .type-icon {
+          font-size: 1.5em;
+        }
+
+        .type-name {
+          font-weight: bold;
+          font-size: 1.1em;
+        }
+
+        .type-count {
+          color: #DAA520;
+          font-size: 0.9em;
+        }
+      }
+
+      .efficiency-bar {
+        background: linear-gradient(145deg, #2F1B14 0%, #3D2914 100%);
+        height: 12px;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 10px;
+        border: 1px solid #CD7F32;
+
+        .efficiency-fill {
+          height: 100%;
+          transition: width 0.8s ease;
+          border-radius: 6px;
+          position: relative;
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+            border-radius: 6px 6px 0 0;
+          }
+        }
+      }
+
+      .efficiency-text {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .efficiency-percent {
+          font-weight: bold;
+          font-size: 1.1em;
+        }
+
+        .efficiency-status {
+          font-size: 0.9em;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}
+
+// Top ressources
+.resources-section {
+  .resources-grid {
+    display: grid;
+    gap: 15px;
+
+    .resource-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+      color: #F4E4BC;
+      border-radius: 10px;
+      border: 2px solid #B8860B;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateX(5px);
+        border-color: #DAA520;
+      }
+
+      .resource-rank {
+        background: linear-gradient(145deg, #DAA520 0%, #B8860B 100%);
+        color: #2F1B14;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+
+      .resource-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+
+        .resource-icon {
+          font-size: 1.8em;
+          filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+        }
+
+        .resource-details {
+          .resource-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+          }
+
+          .resource-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 0.85em;
+
+            .stock {
+              color: #F0E68C;
+            }
+
+            .production {
+              color: #90EE90;
+              font-weight: bold;
+            }
+          }
+        }
+      }
+
+      .resource-value {
+        width: 100px;
+
+        .value-bar {
+          background: linear-gradient(145deg, #2F1B14 0%, #3D2914 100%);
+          height: 8px;
+          border-radius: 4px;
+          overflow: hidden;
+          border: 1px solid #CD7F32;
+
+          .value-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #DAA520 0%, #B8860B 100%);
+            transition: width 0.6s ease;
+            border-radius: 4px;
+          }
+        }
+      }
+    }
+
+    .no-resources {
+      text-align: center;
+      color: #2F1B14;
+      font-style: italic;
+      padding: 40px;
+      background: linear-gradient(145deg, #F4E4BC 0%, #F5DEB3 100%);
+      border-radius: 10px;
+      border: 3px dashed #CD7F32;
+      opacity: 0.8;
+
+      p {
+        margin: 0;
+        font-size: 1.1em;
+      }
+    }
+  }
+}
+
+// Analyse financière
+.financial-section {
+  .financial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+
+    .financial-card {
+      background: linear-gradient(145deg, #3D2914 0%, #8B4513 100%);
+      color: #F4E4BC;
+      padding: 25px;
+      border-radius: 12px;
+      border: 2px solid #B8860B;
+      text-align: center;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      }
+
+      .financial-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+
+        .financial-icon {
+          font-size: 1.5em;
+        }
+
+        .financial-title {
+          font-weight: bold;
+          color: #DAA520;
+        }
+      }
+
+      .financial-value {
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #F0E68C;
+      }
+
+      .financial-description {
+        font-size: 0.9em;
+        opacity: 0.8;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// Actions rapides
+.quick-actions-section {
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+
+    .action-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 25px;
+      border-radius: 12px;
+      border: 2px solid #CD7F32;
+      text-decoration: none;
+      color: #F4E4BC;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.6s ease;
+      }
+
+      &:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        border-color: #DAA520;
+
+        &::before {
+          left: 100%;
+        }
+
+        .action-icon {
+          transform: scale(1.2) rotate(5deg);
+        }
+      }
+
+      &.mines {
+        background: linear-gradient(145deg, #4682B4 0%, #87CEEB 100%);
+        color: #2F1B14;
+      }
+
+      &.furnaces {
+        background: linear-gradient(145deg, #DC143C 0%, #FF6347 100%);
+        color: #F4E4BC;
+      }
+
+      &.assemblers {
+        background: linear-gradient(145deg, #8A2BE2 0%, #9370DB 100%);
+        color: #F4E4BC;
+      }
+
+      .action-icon {
+        font-size: 3em;
+        transition: all 0.3s ease;
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+      }
+
+      .action-title {
+        font-weight: bold;
+        font-size: 1.2em;
+        text-align: center;
+      }
+
+      .action-description {
+        font-size: 0.9em;
+        opacity: 0.8;
+        text-align: center;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 15px;
+  }
+
+  .welcome-section h1 {
+    font-size: 2em;
+  }
+
+  .kpi-grid, .efficiency-grid, .financial-grid, .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resource-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+
+    .resource-value {
+      width: 100%;
+    }
+  }
+}

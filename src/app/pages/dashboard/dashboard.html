@@ -1,0 +1,207 @@
+<div class="dashboard-page">
+  
+  <!-- En-tête avec message de bienvenue -->
+  <div class="welcome-section">
+    <h1>🏭 Empire Industriel FactoQuest</h1>
+    <p class="subtitle">Tableau de bord de votre empire steampunk</p>
+  </div>
+
+  <!-- KPIs principaux -->
+  <div class="kpi-section">
+    <h2>📊 Métriques Principales</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card money">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Trésorerie</div>
+          <div class="kpi-value">{{ formatNumber(dashboardStats.revenue) }}</div>
+          <div class="kpi-unit">crédits</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card machines">
+        <div class="kpi-icon">🏭</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Machines</div>
+          <div class="kpi-value">{{ dashboardStats.activeMachines }}/{{ dashboardStats.totalMachines }}</div>
+          <div class="kpi-unit">actives</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card production">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Production</div>
+          <div class="kpi-value">{{ formatNumber(dashboardStats.totalProduction) }}</div>
+          <div class="kpi-unit">cycles/min</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card resources">
+        <div class="kpi-icon">📦</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Ressources</div>
+          <div class="kpi-value">{{ formatNumber(dashboardStats.totalResources) }}</div>
+          <div class="kpi-unit">unités</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Efficacité des machines -->
+  <div class="efficiency-section" *ngIf="machines$ | async as machines">
+    <h2>⚙️ Efficacité des Machines</h2>
+    <div class="efficiency-grid">
+      <div class="efficiency-card">
+        <div class="machine-type">
+          <span class="type-icon">🏔️</span>
+          <span class="type-name">Mines</span>
+          <span class="type-count">({{ getMachinesByType(machines, 'mine').length }})</span>
+        </div>
+        <div class="efficiency-bar">
+          <div class="efficiency-fill" 
+               [style.width.%]="getTypeEfficiency(machines, 'mine')"
+               [style.background-color]="getEfficiencyColor(getTypeEfficiency(machines, 'mine'))">
+          </div>
+        </div>
+        <div class="efficiency-text">
+          <span class="efficiency-percent">{{ getTypeEfficiency(machines, 'mine').toFixed(0) }}%</span>
+          <span class="efficiency-status" [style.color]="getEfficiencyColor(getTypeEfficiency(machines, 'mine'))">
+            {{ getEfficiencyStatus(getTypeEfficiency(machines, 'mine')) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="efficiency-card">
+        <div class="machine-type">
+          <span class="type-icon">🔥</span>
+          <span class="type-name">Fours</span>
+          <span class="type-count">({{ getMachinesByType(machines, 'furnace').length }})</span>
+        </div>
+        <div class="efficiency-bar">
+          <div class="efficiency-fill" 
+               [style.width.%]="getTypeEfficiency(machines, 'furnace')"
+               [style.background-color]="getEfficiencyColor(getTypeEfficiency(machines, 'furnace'))">
+          </div>
+        </div>
+        <div class="efficiency-text">
+          <span class="efficiency-percent">{{ getTypeEfficiency(machines, 'furnace').toFixed(0) }}%</span>
+          <span class="efficiency-status" [style.color]="getEfficiencyColor(getTypeEfficiency(machines, 'furnace'))">
+            {{ getEfficiencyStatus(getTypeEfficiency(machines, 'furnace')) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="efficiency-card">
+        <div class="machine-type">
+          <span class="type-icon">⚙️</span>
+          <span class="type-name">Assembleurs</span>
+          <span class="type-count">({{ getMachinesByType(machines, 'assembler').length }})</span>
+        </div>
+        <div class="efficiency-bar">
+          <div class="efficiency-fill" 
+               [style.width.%]="getTypeEfficiency(machines, 'assembler')"
+               [style.background-color]="getEfficiencyColor(getTypeEfficiency(machines, 'assembler'))">
+          </div>
+        </div>
+        <div class="efficiency-text">
+          <span class="efficiency-percent">{{ getTypeEfficiency(machines, 'assembler').toFixed(0) }}%</span>
+          <span class="efficiency-status" [style.color]="getEfficiencyColor(getTypeEfficiency(machines, 'assembler'))">
+            {{ getEfficiencyStatus(getTypeEfficiency(machines, 'assembler')) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top ressources -->
+  <div class="resources-section">
+    <h2>🏆 Top Ressources</h2>
+    <div class="resources-grid">
+      <div class="resource-card" *ngFor="let resource of topResources; let i = index">
+        <div class="resource-rank">{{ i + 1 }}</div>
+        <div class="resource-info">
+          <span class="resource-icon">{{ resource.resourceIcon }}</span>
+          <div class="resource-details">
+            <div class="resource-name">{{ resource.resourceName }}</div>
+            <div class="resource-stats">
+              <span class="stock">{{ formatNumber(resource.quantity) }} en stock</span>
+              <span class="production" *ngIf="resource.productionRate > 0">
+                +{{ resource.productionRate.toFixed(1) }}/min
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="resource-value">
+          <div class="value-bar">
+            <div class="value-fill" [style.width.%]="(resource.quantity / topResources[0].quantity) * 100"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div *ngIf="topResources.length === 0" class="no-resources">
+        <p>🚀 Commencez à produire pour voir vos ressources apparaître ici !</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analyse financière -->
+  <div class="financial-section">
+    <h2>💼 Analyse Financière</h2>
+    <div class="financial-grid">
+      <div class="financial-card">
+        <div class="financial-header">
+          <span class="financial-icon">💎</span>
+          <span class="financial-title">Valeur des Stocks</span>
+        </div>
+        <div class="financial-value">{{ formatNumber(calculatePotentialRevenue()) }} 💰</div>
+        <div class="financial-description">Valeur estimée de vos ressources</div>
+      </div>
+      
+      <div class="financial-card">
+        <div class="financial-header">
+          <span class="financial-icon">📈</span>
+          <span class="financial-title">Efficacité Globale</span>
+        </div>
+        <div class="financial-value" [style.color]="getEfficiencyColor(dashboardStats.efficiency)">
+          {{ dashboardStats.efficiency.toFixed(0) }}%
+        </div>
+        <div class="financial-description">Machines actives / Total</div>
+      </div>
+      
+      <div class="financial-card">
+        <div class="financial-header">
+          <span class="financial-icon">🎯</span>
+          <span class="financial-title">Objectif</span>
+        </div>
+        <div class="financial-value">{{ formatNumber(100000) }} 💰</div>
+        <div class="financial-description">Prochain palier à atteindre</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="quick-actions-section">
+    <h2>⚡ Actions Rapides</h2>
+    <div class="actions-grid">
+      <a routerLink="/mines" class="action-card mines">
+        <div class="action-icon">🏔️</div>
+        <div class="action-title">Gérer les Mines</div>
+        <div class="action-description">Extraction de minerais</div>
+      </a>
+      
+      <a routerLink="/furnaces" class="action-card furnaces">
+        <div class="action-icon">🔥</div>
+        <div class="action-title">Gérer les Fours</div>
+        <div class="action-description">Fonte des minerais</div>
+      </a>
+      
+      <a routerLink="/assemblers" class="action-card assemblers">
+        <div class="action-icon">⚙️</div>
+        <div class="action-title">Gérer les Assembleurs</div>
+        <div class="action-description">Fabrication d'objets</div>
+      </a>
+    </div>
+  </div>
+
+</div>

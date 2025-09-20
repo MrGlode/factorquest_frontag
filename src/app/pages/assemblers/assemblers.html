@@ -1,0 +1,168 @@
+<div class="assemblers-page">
+  
+  <!-- Inventaire des items finis -->
+  <div class="finished-inventory-section">
+    <h2>⚙️ Inventaire des Items Assemblés</h2>
+    <div class="inventory-grid" *ngIf="inventory$ | async as inventory">
+      <div class="inventory-item" *ngFor="let resource of finishedItems">
+        <ng-container *ngIf="getResourceQuantity(resource.id) > 0">
+          <span class="resource-icon">{{ resource.icon }}</span>
+          <span class="resource-name">{{ resource.name }}</span>
+          <span class="resource-quantity">{{ getResourceQuantity(resource.id) }}</span>
+        </ng-container>
+      </div>
+      <div *ngIf="hasNoFinishedItems()" class="empty-inventory">
+        Aucun item assemblé - Démarrez vos assembleurs pour créer des objets complexes !
+      </div>
+    </div>
+  </div>
+
+  <!-- Boutique d'assembleurs -->
+  <div class="assembler-shop-section">
+    <h2>🛒 Acheter des Assembleurs</h2>
+    <div class="shop-item">
+      <div class="machine-info">
+        <span class="machine-icon">{{ getAssemblerInfo().icon }}</span>
+        <span class="machine-name">{{ getAssemblerInfo().name }}</span>
+        <span class="machine-cost">{{ getAssemblerInfo().cost }} 💰</span>
+        <span class="machine-description">Assemble des composants pour créer des objets complexes</span>
+      </div>
+      <button 
+        class="buy-btn"
+        [disabled]="!canAffordAssembler()"
+        (click)="buyAssembler()">
+        {{ canAffordAssembler() ? 'Acheter' : 'Pas assez d\'argent' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Gestion des assembleurs -->
+  <div class="assemblers-management-section" *ngIf="machines$ | async as machines">
+    <h2>⚙️ Mes Assembleurs ({{ getAssemblers(machines).length }})</h2>
+    
+    <div *ngIf="getAssemblers(machines).length === 0" class="no-assemblers">
+      <p>Aucun assembleur ! Achetez votre premier assembleur pour commencer la fabrication d'objets complexes.</p>
+      <p><small>💡 Les assembleurs nécessitent des lingots et des composants pour fonctionner.</small></p>
+    </div>
+
+    <div class="assemblers-grid" *ngIf="getAssemblers(machines).length > 0">
+      <div class="assembler-card" *ngFor="let assembler of getAssemblers(machines)">
+        
+        <div class="assembler-header">
+          <h3>{{ assembler.name }}</h3>
+          <div class="header-controls">
+            <span class="complexity-badge" *ngIf="assembler.selectedRecipeId">
+              Complexité: {{ getRecipeComplexity(assembler.selectedRecipeId) }}
+            </span>
+            <button 
+              class="toggle-btn"
+              [class.active]="assembler.isActive"
+              [disabled]="!assembler.selectedRecipeId"
+              (click)="toggleAssembler(assembler.id)">
+              {{ assembler.isActive ? '⏸️' : '▶️' }}
+            </button>
+          </div>
+        </div>
+        
+        <div class="assembler-config">
+          <label>Recette d'assemblage :</label>
+          <select 
+            [value]="assembler.selectedRecipeId || ''"
+            (change)="setAssemblerRecipe(assembler.id, $any($event.target).value)">
+            <option value="">Sélectionner une recette...</option>
+            <option 
+              *ngFor="let recipe of getAssemblerRecipes()" 
+              [value]="recipe.id">
+              {{ recipe.name }} ({{ recipe.duration }}s) - {{ recipe.inputs.length }} composants
+            </option>
+          </select>
+        </div>
+
+        <div class="assembler-status" *ngIf="assembler.selectedRecipeId && getAssemblerStats(assembler.id) as stats">
+          
+          <!-- Schéma de production -->
+          <div class="production-schema">
+            <div class="inputs-section">
+              <strong>Composants nécessaires :</strong>
+              <div class="input-grid">
+                <div class="input-item" *ngFor="let input of stats.recipe.inputs">
+                  <span class="input-icon">{{ getResource(input.resourceId)?.icon }}</span>
+                  <span class="input-details">
+                    <span class="input-name">{{ getResource(input.resourceId)?.name }}</span>
+                    <span class="input-quantity">{{ input.quantity }}x</span>
+                    <span class="input-stock" [class.insufficient]="getResourceQuantity(input.resourceId) < input.quantity">
+                      ({{ getResourceQuantity(input.resourceId) }} disponible)
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="arrow-section">
+              <div class="production-arrow">→</div>
+            </div>
+            
+            <div class="output-section">
+              <strong>Produit final :</strong>
+              <div class="output-item">
+                <span class="output-icon">{{ getResource(stats.recipe.outputs[0].resourceId)?.icon }}</span>
+                <span class="output-details">
+                  <span class="output-name">{{ getResource(stats.recipe.outputs[0].resourceId)?.name }}</span>
+                  <span class="output-quantity">{{ stats.recipe.outputs[0].quantity }}x</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statut de production -->
+          <div class="production-info">
+            <div class="production-rate">
+              ⚡ {{ stats.cyclesPerMinute.toFixed(1) }} items/min
+            </div>
+            <div class="efficiency-info">
+              ⏱️ Temps de fabrication: {{ stats.recipe.duration }}s
+            </div>
+            <div class="machine-state" [class.active]="assembler.isActive" [class.blocked]="!canProduceRecipe(assembler.id)">
+              <ng-container *ngIf="assembler.isActive">
+                <span *ngIf="canProduceRecipe(assembler.id)">🟢 Assemblage en cours</span>
+                <span *ngIf="!canProduceRecipe(assembler.id)">🟠 En attente de composants</span>
+              </ng-container>
+              <span *ngIf="!assembler.isActive">🔴 Arrêté</span>
+            </div>
+          </div>
+          
+          <!-- Barre de progression -->
+          <div class="progress-section" *ngIf="assembler.isActive">
+            <div class="progress-label">
+              <span *ngIf="canProduceRecipe(assembler.id)">🔧 Assemblage en cours...</span>
+              <span *ngIf="!canProduceRecipe(assembler.id)">⏳ En attente de composants...</span>
+            </div>
+            <div class="progress-bar" [class.blocked]="!canProduceRecipe(assembler.id)">
+              <div class="progress" [style.width.%]="stats.progress * 100"></div>
+            </div>
+            <div class="progress-time">
+              {{ (stats.progress * stats.recipe.duration).toFixed(1) }}s / {{ stats.recipe.duration }}s
+            </div>
+          </div>
+          
+          <div class="paused-section" *ngIf="!assembler.isActive && assembler.selectedRecipeId">
+            <div class="paused-label">⏸️ Assemblage en pause</div>
+            <div class="progress-bar paused">
+              <div class="progress" [style.width.%]="stats.progress * 100"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="assembler-actions">
+          <button 
+            class="delete-btn" 
+            (click)="deleteAssembler(assembler.id)"
+            title="Supprimer l'assembleur">
+            🗑️ Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

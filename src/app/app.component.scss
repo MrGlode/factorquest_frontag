@@ -1,3 +1,20 @@
-main {
+.app-container {
+  background: #2F1B14;
+  min-height: 100vh;
   padding: 20px;
+}
+
+.page-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
