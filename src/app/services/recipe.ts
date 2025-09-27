@@ -7,11 +7,15 @@ import { Recipe, Resource } from '../models/game.model';
 export class RecipeService {
 
   private resources: Resource[] = [
-    { id: 'iron_ore', name: 'Minerai de fer', icon: '🪨' },
+    { id: 'iron_ore', name: 'Minerai de fer', icon: '⚪' },
     { id: 'copper_ore', name: 'Minerai de cuivre', icon: '🟤' },
     { id: 'coal', name: 'Charbon', icon: '⚫' },
+    { id: 'gold_ore', name: 'Minerai d\'or', icon: '🟡' },
+    { id: 'silver_ore', name: 'Minerai d\'argent', icon: '⚪' },
     { id: 'iron_plate', name: 'Plaque de fer', icon: '🔹' },
     { id: 'copper_plate', name: 'Plaque de cuivre', icon: '🟠' },
+    { id: 'silver_plate', name: 'Plaque d\'argent', icon: '🔘' },
+    { id: 'gold_plate', name: 'Plaque d\'or', icon: '🟡' },
     { id: 'iron_wire', name: 'Fil de fer', icon: '🔗' },
     { id: 'gear', name: 'Engrenage', icon: '⚙️' }
   ];
@@ -42,6 +46,22 @@ export class RecipeService {
       duration: 0.8,
       machineType: 'mine'
     },
+    {
+      id: 'mine_gold',
+      name: 'Extraction or',
+      inputs: [],
+      outputs: [{ resourceId: 'gold_ore', quantity: 1 }],
+      duration: 1.2,
+      machineType: 'mine'
+    },
+    {
+      id: 'mine_silver',
+      name: 'Extraction argent',
+      inputs: [],
+      outputs: [{ resourceId: 'silver_ore', quantity: 1 }],
+      duration: 1.5,
+      machineType: 'mine'
+    },
 
     // Fours
     {
@@ -64,6 +84,24 @@ export class RecipeService {
       ],
       outputs: [{ resourceId: 'copper_plate', quantity: 1 }],
       duration: 2.5,
+      machineType: 'furnace'
+    },
+
+    { id: 'smelt_silver', name: 'Fonte argent', inputs: [
+        { resourceId: 'silver_ore', quantity: 3 },
+        { resourceId: 'coal', quantity: 1 }
+      ],
+      outputs: [{ resourceId: 'silver_plate', quantity: 1 }],
+      duration: 3,
+      machineType: 'furnace'
+    },
+
+    { id: 'smelt_gold', name: 'Fonte or', inputs: [
+        { resourceId: 'gold_ore', quantity: 3 },
+        { resourceId: 'coal', quantity: 1 }
+      ],
+      outputs: [{ resourceId: 'gold_plate', quantity: 1 }],
+      duration: 3,
       machineType: 'furnace'
     },
 
