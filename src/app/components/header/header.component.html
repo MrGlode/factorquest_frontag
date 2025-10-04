@@ -4,6 +4,13 @@
       <div class="money">
         💰 {{ gameState.money }} crédits
       </div>
+      <!-- Informations utilisateur -->
+      <div class="user-info" *ngIf="currentUser$ | async as user">
+        <span class="username">👤 {{ user.username }}</span>
+        <button class="logout-btn" (click)="logout()" title="Déconnexion">
+          🚪 Déconnexion
+        </button>
+      </div>
       <div class="actions">
         <button class="reset-btn" (click)="resetGame()">🔄 Reset</button>
       </div>
