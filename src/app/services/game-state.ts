@@ -5,6 +5,9 @@ import { MachineService } from '../services/machine';
 import { InventoryService } from '../services/inventory';
 import { MarketService } from '../services/market';
 import { ResearchService } from '../services/research';
+import { PlayerStatsService } from './player-stats.service';
+import { SaveService } from './save.service';
+import { AchievementsService } from './achievements.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +27,9 @@ export class GameStateService {
     private inventoryService: InventoryService,
     private marketService: MarketService,
     private researchService: ResearchService,
+    private playerStatsService: PlayerStatsService,
+    private saveService: SaveService,
+    private achievementsService: AchievementsService
   ) {
     this.loadFromStorage();
     this.calculateOfflineProgress();
@@ -51,6 +57,9 @@ export class GameStateService {
     this.gameState.money += amount;
     this.saveToStorage();
     this.gameStateSubject.next({ ...this.gameState });
+
+    this.playerStatsService.trackMoneyEarned(amount);
+    this.playerStatsService.trackHighestMoney(this.gameState.money);
   }
 
   // Dépenser de l'argent (retourne true si possible)
@@ -61,6 +70,7 @@ export class GameStateService {
     this.gameState.money -= amount;
     this.saveToStorage();
     this.gameStateSubject.next({ ...this.gameState });
+    this.playerStatsService.trackMoneySpent(amount);
     return true;
   }
 
@@ -99,20 +109,15 @@ export class GameStateService {
 
   // Sauvegarder
   private saveToStorage(): void {
-    localStorage.setItem('factoquest_gamestate', JSON.stringify(this.gameState));
+    this.saveService.save('gamestate', this.gameState);
   }
 
   // Charger
   private loadFromStorage(): void {
-    const saved = localStorage.getItem('factoquest_gamestate');
+    const saved = this.saveService.load('gamestate');
     if (saved) {
-      try {
-        const loadedState = JSON.parse(saved);
-        this.gameState = { ...this.gameState, ...loadedState };
-        this.gameStateSubject.next({ ...this.gameState });
-      } catch (error) {
-        console.error('Erreur lors du chargement de l\'état:', error);
-      }
+      this.gameState = { ...this.gameState, ...saved };
+      this.gameStateSubject.next({ ...this.gameState });
     }
   }
 
@@ -127,6 +132,8 @@ export class GameStateService {
     this.inventoryService.reset();
     this.marketService.reset();
     this.researchService.reset();
+    this.playerStatsService.reset();
+    this.achievementsService.reset();
     this.saveToStorage();
     this.gameStateSubject.next({ ...this.gameState });
   }

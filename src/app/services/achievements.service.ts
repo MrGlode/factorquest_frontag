@@ -306,4 +306,12 @@ export class AchievementsService {
   public getCompletionPercentage(): number {
     return (this.unlockedAchievements.size / this.achievements.length) * 100;
   }
+
+  // Reset des achievements (pour debug)
+  public reset(): void {
+    this.unlockedAchievements.clear();
+    this.saveUnlockedAchievements();
+    this.updateProgress();
+    console.log('🏆 Achievements réinitialisés');
+  }
 }

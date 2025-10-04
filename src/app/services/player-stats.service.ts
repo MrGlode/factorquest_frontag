@@ -269,5 +269,22 @@ export class PlayerStatsService {
     const stats = this.initializeStats();
     this.statsSubject.next(stats);
     this.saveStats(stats);
+    
+    const user = this.authService.currentUserValue;
+    if (user) {
+      const profile: PlayerProfile = {
+        userId: user.id,
+        username: user.username,
+        email: user.email,
+        stats: stats,
+        achievements: [],
+        level: 1,
+        experience: 0,
+        createdAt: new Date(),
+        lastSaveAt: new Date()
+      };
+      this.profileSubject.next(profile);
+      this.saveProfile(profile);
+    }
   }
 }

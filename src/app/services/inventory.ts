@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Inventory } from '../models/game.model';
+import { SaveService } from './save.service';
+import { PlayerStatsService } from './player-stats.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +12,10 @@ export class InventoryService {
   private inventory: Inventory = {};
   private inventorySubject = new BehaviorSubject<Inventory>(this.inventory);
 
-  constructor() {
+  constructor(
+    private saveService: SaveService,
+    private playerStatsService: PlayerStatsService
+  ) {
     this.loadFromStorage();
   }
 
@@ -36,6 +41,7 @@ export class InventoryService {
     this.inventory[resourceId] = (this.inventory[resourceId] || 0) + quantity;
     this.saveToStorage();
     this.inventorySubject.next({ ...this.inventory });
+    this.playerStatsService.trackResourceProduced(quantity);
   }
 
   // Retirer des ressources (retourne true si possible, false sinon)
@@ -84,22 +90,17 @@ export class InventoryService {
     });
   }
 
-  // Sauvegarder dans le localStorage
+  // Sauvegarder
   private saveToStorage(): void {
-    localStorage.setItem('factoquest_inventory', JSON.stringify(this.inventory));
+    this.saveService.save('inventory', this.inventory);
   }
 
-  // Charger depuis le localStorage
+  // Charger
   private loadFromStorage(): void {
-    const saved = localStorage.getItem('factoquest_inventory');
+    const saved = this.saveService.load<any>('inventory');
     if (saved) {
-      try {
-        this.inventory = JSON.parse(saved);
-        this.inventorySubject.next({ ...this.inventory });
-      } catch (error) {
-        console.error('Erreur lors du chargement de l\'inventaire:', error);
-        this.inventory = {};
-      }
+      this.inventory = saved;
+      this.inventorySubject.next({ ...this.inventory });
     }
   }
 

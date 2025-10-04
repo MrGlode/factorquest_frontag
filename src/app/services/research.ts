@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Laboratory, Research, ResearchProgress, ResearchEffect } from '../models/game.model';
+import { SaveService } from './save.service';
+import { PlayerStatsService } from './player-stats.service';
 
 @Injectable({
   providedIn: 'root'
@@ -70,7 +72,10 @@ export class ResearchService {
     }
   };
 
-  constructor() {
+  constructor(
+    private saveService: SaveService,
+    private playerStatsService: PlayerStatsService
+  ) {
     this.initializeResearches();
     this.loadFromStorage();
     this.startResearchLoop();
@@ -378,7 +383,7 @@ export class ResearchService {
       this.completedResearches.push(researchId);
       
       console.log(`Recherche terminée: ${research.name}`);
-      // Ici on pourrait ajouter une notification
+      this.playerStatsService.trackResearchCompleted();
     }
   }
 
@@ -451,11 +456,11 @@ export class ResearchService {
       completedResearches: this.completedResearches,
       nextLabId: this.nextLabId
     };
-    localStorage.setItem('factoquest_research', JSON.stringify(data));
+    this.saveService.save('research', data);
   }
 
   private loadFromStorage(): void {
-    const saved = localStorage.getItem('factoquest_research');
+    const saved = this.saveService.load<any>('research');
     if (saved) {
       try {
         const data = JSON.parse(saved);

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Machine } from '../models/game.model';
+import { SaveService } from './save.service';
+import { PlayerStatsService } from './player-stats.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +20,10 @@ export class MachineService {
     assembler: { name: 'Assembleur', cost: 1200, icon: '⚙️' }
   };
 
-  constructor() {
+  constructor(
+    private saveService: SaveService,
+    private playerStatsService: PlayerStatsService
+  ) {
     this.loadFromStorage();
   }
 
@@ -58,6 +63,7 @@ export class MachineService {
     this.machines.push(machine);
     this.saveToStorage();
     this.machinesSubject.next([...this.machines]);
+    this.playerStatsService.trackMachineBought();
     
     return machine;
   }
@@ -138,22 +144,16 @@ export class MachineService {
       machines: this.machines,
       nextMachineId: this.nextMachineId
     };
-    localStorage.setItem('factoquest_machines', JSON.stringify(dataToSave));
+    this.saveService.save('machines', dataToSave);
   }
 
   // Charger
   private loadFromStorage(): void {
-    const saved = localStorage.getItem('factoquest_machines');
+    const saved = this.saveService.load<any>('machines');
     if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        this.machines = data.machines || [];
-        this.nextMachineId = data.nextMachineId || 1;
-        this.machinesSubject.next([...this.machines]);
-      } catch (error) {
-        console.error('Erreur lors du chargement des machines:', error);
-        this.machines = [];
-      }
+      this.machines = saved.machines || [];
+      this.nextMachineId = saved.nextMachineId || 1;
+      this.machinesSubject.next([...this.machines]);
     }
   }
 

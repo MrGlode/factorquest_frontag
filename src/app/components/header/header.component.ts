@@ -6,9 +6,6 @@ import { Observable, Subscription } from 'rxjs';
 import { NavigationService, NavigationTab } from '../../services/navigation';
 import { GameStateService } from '../../services/game-state';
 import { MachineService } from '../../services/machine';
-import { InventoryService } from '../../services/inventory';
-import { MarketService } from '../../services/market';
-import { ResearchService } from '../../services/research';
 import { AuthService } from'../../services/auth.service';
 import { PlayerStatsService } from '../../services/player-stats.service';
 
