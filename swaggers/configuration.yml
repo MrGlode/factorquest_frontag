@@ -1,0 +1,278 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Configuration API
+  description: |
+    API pour la configuration et métadonnées dans FactoQuest.
+    Gère la configuration générale du jeu et les types de machines.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/configuration/v1'
+security:
+  - default: []
+tags:
+  - name: configuration
+    description: Operations related to game configuration.
+paths:
+  /game:
+    get:
+      tags:
+        - configuration
+      description: Configuration générale du jeu
+      operationId: getGameConfig
+      responses:
+        '200':
+          description: Configuration récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /machine-types:
+    get:
+      tags:
+        - configuration
+      description: Types de machines disponibles
+      operationId: getMachineTypes
+      responses:
+        '200':
+          description: Types de machines récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machineTypes:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/MachineTypeConfig'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+
+components:
+  schemas:
+    GameConfig:
+      title: Configuration du jeu
+      type: object
+      required:
+        - version
+        - features
+        - limits
+        - balancing
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        features:
+          type: object
+          properties:
+            research:
+              type: boolean
+            market:
+              type: boolean
+            achievements:
+              type: boolean
+            multiplayer:
+              type: boolean
+          example:
+            research: true
+            market: true
+            achievements: true
+            multiplayer: false
+        limits:
+          type: object
+          properties:
+            maxMachines:
+              type: integer
+            maxLaboratories:
+              type: integer
+            maxInventorySlots:
+              type: integer
+          example:
+            maxMachines: 100
+            maxLaboratories: 10
+            maxInventorySlots: 1000
+        balancing:
+          type: object
+          properties:
+            baseMachineCosts:
+              type: object
+              additionalProperties:
+                type: number
+            productionMultipliers:
+              type: object
+              properties:
+                speed:
+                  type: number
+                efficiency:
+                  type: number
+            researchSpeedMultiplier:
+              type: number
+            marketVolatility:
+              type: number
+          example:
+            baseMachineCosts:
+              mine: 500
+              furnace: 800
+              assembler: 1200
+            productionMultipliers:
+              speed: 1.0
+              efficiency: 1.0
+            researchSpeedMultiplier: 1.0
+            marketVolatility: 0.1
+    
+    MachineTypeConfig:
+      title: Configuration de type de machine
+      type: object
+      required:
+        - name
+        - icon
+        - baseCost
+        - maxLevel
+        - upgradeMultiplier
+        - energyConsumption
+        - availableUpgrades
+        - description
+      properties:
+        name:
+          type: string
+          example: "Mine"
+        icon:
+          type: string
+          example: "🏔️"
+        baseCost:
+          type: number
+          example: 500
+        maxLevel:
+          type: integer
+          example: 5
+        upgradeMultiplier:
+          type: number
+          example: 1.5
+        energyConsumption:
+          type: number
+          example: 10
+        availableUpgrades:
+          type: array
+          items:
+            type: string
+          example: ["speed", "efficiency", "capacity"]
+        description:
+          type: string
+          example: "Extrait des minerais du sol"
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/configuration/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/configuration/v1/'
+  type: http
+x-wso2-basePath: /configuration/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

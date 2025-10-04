@@ -1,0 +1,320 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Events API
+  description: |
+    API pour la gestion des événements temps réel dans FactoQuest.
+    Gère les calculs hors ligne, notifications et événements du jeu.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/events/v1'
+security:
+  - default: []
+tags:
+  - name: events
+    description: Operations related to real-time events management.
+  - name: notifications
+    description: Operations related to notifications management.
+paths:
+  /offline-calculation:
+    post:
+      tags:
+        - events
+      description: Calcule la production hors ligne
+      operationId: calculateOfflineProduction
+      requestBody:
+        $ref: '#/components/requestBodies/OfflineCalculation'
+      responses:
+        '201':
+          description: Production hors ligne calculée avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfflineProductionResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /notifications:
+    get:
+      tags:
+        - notifications
+      description: Notifications du jeu
+      operationId: getNotifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Notifications récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+
+components:
+  schemas:
+    NotificationType:
+      title: Type de notification
+      type: string
+      enum: [production_complete, research_complete, order_available, achievement_unlocked]
+    
+    ResourceQuantity:
+      title: Quantité de ressource
+      type: object
+      required:
+        - resourceId
+        - quantity
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 0
+          example: 50
+    
+    Inventory:
+      title: Inventaire du joueur
+      type: object
+      additionalProperties:
+        type: number
+      example:
+        iron_ore: 150
+        copper_ore: 75
+        coal: 200
+    
+    Notification:
+      title: Notification
+      type: object
+      required:
+        - id
+        - type
+        - title
+        - message
+        - timestamp
+        - isRead
+      properties:
+        id:
+          type: string
+          example: "notif_001"
+        type:
+          $ref: '#/components/schemas/NotificationType'
+        title:
+          type: string
+          example: "Recherche terminée"
+        message:
+          type: string
+          example: "La technologie 'Extraction Rapide I' est maintenant disponible !"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:25:00Z"
+        isRead:
+          type: boolean
+          example: false
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            researchId: "mining_speed_1"
+    
+    OfflineProductionResponse:
+      title: Réponse production hors ligne
+      type: object
+      required:
+        - offlineDuration
+        - productionResults
+        - machineDetails
+        - updatedInventory
+        - summary
+      properties:
+        offlineDuration:
+          type: number
+          example: 9000
+        productionResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        machineDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              machineId:
+                type: string
+              cyclesCompleted:
+                type: integer
+              resourcesProduced:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceQuantity'
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        summary:
+          type: string
+          example: "Pendant votre absence de 2h30, vos machines ont produit 450 minerais de fer."
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  requestBodies:
+    OfflineCalculation:
+      description: Demande de calcul de production hors ligne
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - lastOnlineTime
+              - currentTime
+            properties:
+              lastOnlineTime:
+                type: string
+                format: date-time
+                example: "2025-01-15T08:00:00Z"
+              currentTime:
+                type: string
+                format: date-time
+                example: "2025-01-15T10:30:00Z"
+      required: true
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/events/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/events/v1/'
+  type: http
+x-wso2-basePath: /events/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

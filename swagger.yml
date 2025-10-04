@@ -1,0 +1,2109 @@
+openapi: 3.0.3
+info:
+  title: FactoQuest API
+  description: |
+    API backend pour le jeu de simulation industrielle FactoQuest.
+    Gère l'état persistant, les données de configuration et toutes les opérations du jeu.
+  version: 1.0.0
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.factoquest.com/v1
+    description: Production server
+  - url: https://dev-api.factoquest.com/v1
+    description: Development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ===========================================
+  # GESTION DU JOUEUR & ÉTAT DU JEU
+  # ===========================================
+  
+  /player/state:
+    get:
+      tags:
+        - Player
+      summary: Récupère l'état complet du joueur
+      operationId: getPlayerState
+      responses:
+        '200':
+          description: État du joueur récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStateResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Player
+      summary: Met à jour l'état du joueur
+      operationId: updatePlayerState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerStateUpdate'
+      responses:
+        '200':
+          description: État mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /player/reset:
+    post:
+      tags:
+        - Player
+      summary: Remet à zéro la progression du joueur
+      operationId: resetPlayerProgress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmation:
+                  type: boolean
+                  example: true
+              required:
+                - confirmation
+      responses:
+        '200':
+          description: Progression remise à zéro avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  # ===========================================
+  # GESTION DES MACHINES
+  # ===========================================
+  
+  /machines:
+    get:
+      tags:
+        - Machines
+      summary: Liste toutes les machines du joueur
+      operationId: getMachines
+      responses:
+        '200':
+          description: Liste des machines récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machines:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Machine'
+
+  /machines/purchase:
+    post:
+      tags:
+        - Machines
+      summary: Acheter une nouvelle machine
+      operationId: purchaseMachine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MachinePurchaseRequest'
+      responses:
+        '200':
+          description: Machine achetée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachinePurchaseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/InsufficientFundsError'
+
+  /machines/{machineId}/recipe:
+    put:
+      tags:
+        - Machines
+      summary: Changer la recette d'une machine
+      operationId: setMachineRecipe
+      parameters:
+        - name: machineId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "mine_001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipeId:
+                  type: string
+                  example: "copper_mining"
+              required:
+                - recipeId
+      responses:
+        '200':
+          description: Recette mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /machines/{machineId}/toggle:
+    put:
+      tags:
+        - Machines
+      summary: Activer/désactiver une machine
+      operationId: toggleMachine
+      parameters:
+        - name: machineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+                  example: true
+              required:
+                - isActive
+      responses:
+        '200':
+          description: État de la machine mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /machines/{machineId}/upgrade:
+    post:
+      tags:
+        - Machines
+      summary: Améliorer une machine
+      operationId: upgradeMachine
+      parameters:
+        - name: machineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MachineUpgradeRequest'
+      responses:
+        '200':
+          description: Machine améliorée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachineUpgradeResponse'
+        '402':
+          $ref: '#/components/responses/InsufficientFundsError'
+
+  /machines/{machineId}:
+    delete:
+      tags:
+        - Machines
+      summary: Vendre une machine
+      operationId: sellMachine
+      parameters:
+        - name: machineId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Machine vendue avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachineSaleResponse'
+
+  # ===========================================
+  # SYSTÈME DE RECETTES
+  # ===========================================
+  
+  /recipes:
+    get:
+      tags:
+        - Recipes
+      summary: Liste toutes les recettes disponibles
+      operationId: getRecipes
+      responses:
+        '200':
+          description: Liste des recettes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recipes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+
+  /recipes/machine/{machineType}:
+    get:
+      tags:
+        - Recipes
+      summary: Recettes disponibles pour un type de machine
+      operationId: getRecipesByMachineType
+      parameters:
+        - name: machineType
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/MachineType'
+      responses:
+        '200':
+          description: Recettes pour le type de machine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machineType:
+                    $ref: '#/components/schemas/MachineType'
+                  recipes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+
+  # ===========================================
+  # GESTION DES RESSOURCES
+  # ===========================================
+  
+  /resources:
+    get:
+      tags:
+        - Resources
+      summary: Liste toutes les ressources du jeu
+      operationId: getResources
+      responses:
+        '200':
+          description: Liste des ressources récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Resource'
+
+  /inventory/add:
+    post:
+      tags:
+        - Inventory
+      summary: Ajouter des ressources à l'inventaire
+      operationId: addToInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resources:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ResourceQuantity'
+              required:
+                - resources
+      responses:
+        '200':
+          description: Ressources ajoutées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+
+  /inventory/remove:
+    post:
+      tags:
+        - Inventory
+      summary: Retirer des ressources de l'inventaire
+      operationId: removeFromInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resources:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ResourceQuantity'
+              required:
+                - resources
+      responses:
+        '200':
+          description: Ressources retirées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+        '400':
+          description: Ressources insuffisantes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /inventory/craft:
+    post:
+      tags:
+        - Inventory
+      summary: Crafter des items
+      operationId: craftItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipeId:
+                  type: string
+                  example: "iron_gear"
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 5
+              required:
+                - recipeId
+                - quantity
+      responses:
+        '200':
+          description: Items craftés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CraftingResponse'
+
+  # ===========================================
+  # SYSTÈME DE RECHERCHE
+  # ===========================================
+  
+  /research/technologies:
+    get:
+      tags:
+        - Research
+      summary: Liste toutes les technologies
+      operationId: getTechnologies
+      responses:
+        '200':
+          description: Liste des technologies récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  technologies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Research'
+
+  /research/laboratories:
+    get:
+      tags:
+        - Research
+      summary: Liste des laboratoires du joueur
+      operationId: getLaboratories
+      responses:
+        '200':
+          description: Liste des laboratoires récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  laboratories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Laboratory'
+
+  /research/laboratories/purchase:
+    post:
+      tags:
+        - Research
+      summary: Acheter un laboratoire
+      operationId: purchaseLaboratory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaboratoryPurchaseRequest'
+      responses:
+        '200':
+          description: Laboratoire acheté avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaboratoryPurchaseResponse'
+        '402':
+          $ref: '#/components/responses/InsufficientFundsError'
+
+  /research/start:
+    post:
+      tags:
+        - Research
+      summary: Démarrer une recherche
+      operationId: startResearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                researchId:
+                  type: string
+                  example: "mining_speed_1"
+                laboratoryId:
+                  type: string
+                  example: "lab_001"
+              required:
+                - researchId
+                - laboratoryId
+      responses:
+        '200':
+          description: Recherche démarrée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchStartResponse'
+        '400':
+          description: Erreur lors du démarrage de la recherche
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /research/progress:
+    get:
+      tags:
+        - Research
+      summary: Progression des recherches actives
+      operationId: getResearchProgress
+      responses:
+        '200':
+          description: Progression des recherches récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeResearches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResearchProgress'
+
+  # ===========================================
+  # SYSTÈME DE MARCHÉ
+  # ===========================================
+  
+  /market/prices:
+    get:
+      tags:
+        - Market
+      summary: Prix actuels du marché
+      operationId: getMarketPrices
+      responses:
+        '200':
+          description: Prix du marché récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  marketPrices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MarketPrice'
+
+  /market/sell:
+    post:
+      tags:
+        - Market
+      summary: Vendre des ressources
+      operationId: sellResources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transactions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MarketTransaction'
+              required:
+                - transactions
+      responses:
+        '200':
+          description: Ressources vendues avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketSaleResponse'
+        '400':
+          description: Erreur lors de la vente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /market/orders:
+    get:
+      tags:
+        - Market
+      summary: Commandes spéciales disponibles
+      operationId: getSpecialOrders
+      responses:
+        '200':
+          description: Commandes spéciales récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  specialOrders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpecialOrder'
+
+  /market/orders/{orderId}/complete:
+    post:
+      tags:
+        - Market
+      summary: Terminer une commande spéciale
+      operationId: completeSpecialOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resources:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ResourceQuantity'
+              required:
+                - resources
+      responses:
+        '200':
+          description: Commande terminée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCompletionResponse'
+
+  # ===========================================
+  # STATISTIQUES & MÉTRIQUES
+  # ===========================================
+  
+  /statistics/production:
+    get:
+      tags:
+        - Statistics
+      summary: Statistiques de production
+      operationId: getProductionStatistics
+      parameters:
+        - name: timeRange
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [1h, 6h, 24h, 7d, 30d]
+            default: "24h"
+      responses:
+        '200':
+          description: Statistiques de production récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductionStatistics'
+
+  /statistics/dashboard:
+    get:
+      tags:
+        - Statistics
+      summary: Métriques pour le tableau de bord
+      operationId: getDashboardMetrics
+      responses:
+        '200':
+          description: Métriques du tableau de bord récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+
+  /statistics/performance:
+    get:
+      tags:
+        - Statistics
+      summary: Performance des machines
+      operationId: getMachinePerformance
+      responses:
+        '200':
+          description: Performance des machines récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machinePerformance:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MachinePerformance'
+
+  # ===========================================
+  # GESTION DES ÉVÉNEMENTS TEMPS RÉEL
+  # ===========================================
+  
+  /events/offline-calculation:
+    post:
+      tags:
+        - Events
+      summary: Calcule la production hors ligne
+      operationId: calculateOfflineProduction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lastOnlineTime:
+                  type: string
+                  format: date-time
+                  example: "2025-01-15T08:00:00Z"
+                currentTime:
+                  type: string
+                  format: date-time
+                  example: "2025-01-15T10:30:00Z"
+              required:
+                - lastOnlineTime
+                - currentTime
+      responses:
+        '200':
+          description: Production hors ligne calculée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfflineProductionResponse'
+
+  /events/notifications:
+    get:
+      tags:
+        - Events
+      summary: Notifications du jeu
+      operationId: getNotifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Notifications récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+
+  # ===========================================
+  # SYSTÈME DE SUCCÈS
+  # ===========================================
+  
+  /achievements:
+    get:
+      tags:
+        - Achievements
+      summary: Liste des succès
+      operationId: getAchievements
+      responses:
+        '200':
+          description: Liste des succès récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  achievements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Achievement'
+
+  # ===========================================
+  # CONFIGURATION & MÉTADONNÉES
+  # ===========================================
+  
+  /config/game:
+    get:
+      tags:
+        - Configuration
+      summary: Configuration générale du jeu
+      operationId: getGameConfig
+      responses:
+        '200':
+          description: Configuration récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+
+  /config/machine-types:
+    get:
+      tags:
+        - Configuration
+      summary: Types de machines disponibles
+      operationId: getMachineTypes
+      responses:
+        '200':
+          description: Types de machines récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machineTypes:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/MachineTypeConfig'
+
+# ===========================================
+# COMPOSANTS RÉUTILISABLES
+# ===========================================
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Enums
+    MachineType:
+      type: string
+      enum: [mine, furnace, assembler]
+    
+    LaboratoryType:
+      type: string
+      enum: [basic, advanced, institute, mining, metallurgy, mechanical]
+    
+    ClientType:
+      type: string
+      enum: [noble, factory, government, merchant]
+    
+    NotificationType:
+      type: string
+      enum: [production_complete, research_complete, order_available, achievement_unlocked]
+
+    # Modèles principaux
+    GameState:
+      type: object
+      properties:
+        money:
+          type: number
+          example: 10000
+        level:
+          type: integer
+          example: 1
+        experience:
+          type: number
+          example: 0
+        lastSaveTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        totalPlayTime:
+          type: number
+          example: 3600
+        achievements:
+          type: array
+          items:
+            type: string
+          example: ["first_mine", "first_research"]
+
+    Inventory:
+      type: object
+      additionalProperties:
+        type: number
+      example:
+        iron_ore: 150
+        copper_ore: 75
+        coal: 200
+
+    Position:
+      type: object
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+      required:
+        - x
+        - y
+
+    Machine:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "mine_001"
+        type:
+          $ref: '#/components/schemas/MachineType'
+        name:
+          type: string
+          example: "Mine de Fer #1"
+        level:
+          type: integer
+          minimum: 1
+          example: 1
+        selectedRecipeId:
+          type: string
+          example: "iron_mining"
+        isActive:
+          type: boolean
+          example: true
+        lastProductionTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:25:00Z"
+        pausedProgress:
+          type: number
+          minimum: 0
+          example: 0
+        efficiency:
+          type: number
+          minimum: 0
+          maximum: 200
+          example: 100
+        upgrades:
+          type: array
+          items:
+            type: string
+          example: ["speed_boost_1"]
+        position:
+          $ref: '#/components/schemas/Position'
+      required:
+        - id
+        - type
+        - name
+        - level
+        - isActive
+        - lastProductionTime
+        - pausedProgress
+        - efficiency
+        - position
+
+    ResourceQuantity:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 0
+          example: 50
+      required:
+        - resourceId
+        - quantity
+
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "iron_mining"
+        name:
+          type: string
+          example: "Extraction de Fer"
+        machineType:
+          $ref: '#/components/schemas/MachineType'
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        duration:
+          type: number
+          minimum: 0.1
+          example: 2
+        requiredLevel:
+          type: integer
+          minimum: 1
+          example: 1
+        requiredResearch:
+          type: array
+          items:
+            type: string
+          example: []
+        energyCost:
+          type: number
+          minimum: 0
+          example: 10
+      required:
+        - id
+        - name
+        - machineType
+        - inputs
+        - outputs
+        - duration
+        - requiredLevel
+
+    Resource:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "iron_ore"
+        name:
+          type: string
+          example: "Minerai de Fer"
+        icon:
+          type: string
+          example: "🔗"
+        category:
+          type: string
+          enum: [ore, plate, component, finished]
+          example: "ore"
+        rarity:
+          type: string
+          enum: [common, uncommon, rare, epic, legendary]
+          example: "common"
+        baseValue:
+          type: number
+          minimum: 0
+          example: 5
+        stackSize:
+          type: integer
+          minimum: 1
+          example: 1000
+      required:
+        - id
+        - name
+        - icon
+        - category
+        - rarity
+        - baseValue
+        - stackSize
+
+    ResearchEffect:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [speed, efficiency, unlock_recipe, cost_reduction, bonus_output]
+        target:
+          type: string
+          enum: [mine, furnace, assembler, all]
+        value:
+          type: number
+        description:
+          type: string
+      required:
+        - type
+        - target
+        - value
+        - description
+
+    Research:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "mining_speed_1"
+        name:
+          type: string
+          example: "Extraction Rapide I"
+        description:
+          type: string
+          example: "Améliore la vitesse d'extraction de 25%"
+        category:
+          type: string
+          enum: [mine, furnace, assembler, general]
+        requirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        duration:
+          type: number
+          minimum: 1
+          example: 300
+        prerequisites:
+          type: array
+          items:
+            type: string
+          example: []
+        effects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResearchEffect'
+        isUnlocked:
+          type: boolean
+          example: true
+        isCompleted:
+          type: boolean
+          example: false
+      required:
+        - id
+        - name
+        - description
+        - category
+        - requirements
+        - duration
+        - prerequisites
+        - effects
+        - isUnlocked
+        - isCompleted
+
+    Laboratory:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "lab_001"
+        name:
+          type: string
+          example: "Laboratoire Principal"
+        type:
+          $ref: '#/components/schemas/LaboratoryType'
+        level:
+          type: integer
+          minimum: 1
+          example: 1
+        researchSpeed:
+          type: number
+          minimum: 0.1
+          example: 1.0
+        maxSimultaneousResearch:
+          type: integer
+          minimum: 1
+          example: 1
+        currentResearch:
+          type: array
+          items:
+            type: string
+          example: ["mining_speed_1"]
+        specialization:
+          type: string
+          enum: [mine, furnace, assembler, general]
+          example: "general"
+      required:
+        - id
+        - name
+        - type
+        - level
+        - researchSpeed
+        - maxSimultaneousResearch
+        - currentResearch
+
+    ResearchProgress:
+      type: object
+      properties:
+        researchId:
+          type: string
+          example: "mining_speed_1"
+        laboratoryId:
+          type: string
+          example: "lab_001"
+        startTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:00:00Z"
+        estimatedEndTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:05:00Z"
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.6
+      required:
+        - researchId
+        - laboratoryId
+        - startTime
+        - estimatedEndTime
+        - progress
+
+    MarketPrice:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        basePrice:
+          type: number
+          minimum: 0
+          example: 5
+        currentPrice:
+          type: number
+          minimum: 0
+          example: 6.2
+        demand:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.8
+        trend:
+          type: string
+          enum: [rising, stable, falling]
+          example: "rising"
+        lastUpdate:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+      required:
+        - resourceId
+        - basePrice
+        - currentPrice
+        - demand
+        - trend
+        - lastUpdate
+
+    SpecialOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "order_001"
+        clientName:
+          type: string
+          example: "Seigneur Volkan"
+        clientType:
+          $ref: '#/components/schemas/ClientType'
+        requirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        reward:
+          type: number
+          minimum: 0
+          example: 2500
+        bonus:
+          type: number
+          minimum: 0
+          example: 500
+        deadline:
+          type: string
+          format: date-time
+          example: "2025-01-16T10:00:00Z"
+        description:
+          type: string
+          example: "Le Seigneur Volkan a besoin d'engrenages pour ses machines de guerre."
+      required:
+        - id
+        - clientName
+        - clientType
+        - requirements
+        - reward
+        - bonus
+        - deadline
+        - description
+
+    Achievement:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "first_mine"
+        name:
+          type: string
+          example: "Premier Mineur"
+        description:
+          type: string
+          example: "Acheter votre première mine"
+        category:
+          type: string
+          enum: [milestone, production, research, market, collection]
+          example: "milestone"
+        requirement:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [machine_purchase, production_total, research_complete, market_sale, resource_collect]
+            machineType:
+              $ref: '#/components/schemas/MachineType'
+            count:
+              type: integer
+            resourceId:
+              type: string
+            quantity:
+              type: number
+          required:
+            - type
+        reward:
+          type: object
+          properties:
+            money:
+              type: number
+            experience:
+              type: number
+          example:
+            money: 500
+            experience: 100
+        isUnlocked:
+          type: boolean
+          example: true
+        unlockedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T09:00:00Z"
+      required:
+        - id
+        - name
+        - description
+        - category
+        - requirement
+        - reward
+        - isUnlocked
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "notif_001"
+        type:
+          $ref: '#/components/schemas/NotificationType'
+        title:
+          type: string
+          example: "Recherche terminée"
+        message:
+          type: string
+          example: "La technologie 'Extraction Rapide I' est maintenant disponible !"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:25:00Z"
+        isRead:
+          type: boolean
+          example: false
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            researchId: "mining_speed_1"
+      required:
+        - id
+        - type
+        - title
+        - message
+        - timestamp
+        - isRead
+
+    # Modèles de requête
+    MachinePurchaseRequest:
+      type: object
+      properties:
+        machineType:
+          $ref: '#/components/schemas/MachineType'
+        position:
+          $ref: '#/components/schemas/Position'
+      required:
+        - machineType
+        - position
+
+    MachineUpgradeRequest:
+      type: object
+      properties:
+        upgradeType:
+          type: string
+          enum: [speed, efficiency, capacity]
+        level:
+          type: integer
+          minimum: 2
+          example: 2
+      required:
+        - upgradeType
+        - level
+
+    LaboratoryPurchaseRequest:
+      type: object
+      properties:
+        laboratoryType:
+          $ref: '#/components/schemas/LaboratoryType'
+        specialization:
+          type: string
+          enum: [mine, furnace, assembler, general]
+          example: "general"
+      required:
+        - laboratoryType
+
+    MarketTransaction:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 1
+          example: 100
+        expectedPrice:
+          type: number
+          minimum: 0
+          example: 6.2
+      required:
+        - resourceId
+        - quantity
+        - expectedPrice
+
+    PlayerStateUpdate:
+      type: object
+      properties:
+        gameState:
+          $ref: '#/components/schemas/GameState'
+        inventory:
+          $ref: '#/components/schemas/Inventory'
+      required:
+        - gameState
+        - inventory
+
+    # Modèles de réponse
+    PlayerStateResponse:
+      type: object
+      properties:
+        playerId:
+          type: string
+          example: "player_12345"
+        gameState:
+          $ref: '#/components/schemas/GameState'
+        inventory:
+          $ref: '#/components/schemas/Inventory'
+      required:
+        - playerId
+        - gameState
+        - inventory
+
+    MachinePurchaseResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        machine:
+          $ref: '#/components/schemas/Machine'
+        newBalance:
+          type: number
+          example: 9500
+        message:
+          type: string
+          example: "Mine achetée avec succès"
+      required:
+        - success
+        - machine
+        - newBalance
+        - message
+
+    MachineUpgradeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        machine:
+          $ref: '#/components/schemas/Machine'
+        newBalance:
+          type: number
+          example: 8500
+        upgradeApplied:
+          type: object
+          properties:
+            type:
+              type: string
+            level:
+              type: integer
+            bonus:
+              type: number
+        message:
+          type: string
+          example: "Machine améliorée avec succès"
+      required:
+        - success
+        - machine
+        - newBalance
+        - upgradeApplied
+        - message
+
+    MachineSaleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        refundAmount:
+          type: number
+          example: 250
+        newBalance:
+          type: number
+          example: 10250
+        message:
+          type: string
+          example: "Machine vendue avec succès"
+      required:
+        - success
+        - refundAmount
+        - newBalance
+        - message
+
+    LaboratoryPurchaseResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        laboratory:
+          $ref: '#/components/schemas/Laboratory'
+        newBalance:
+          type: number
+          example: 7000
+        message:
+          type: string
+          example: "Laboratoire acheté avec succès"
+      required:
+        - success
+        - laboratory
+        - newBalance
+        - message
+
+    ResearchStartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        researchProgress:
+          $ref: '#/components/schemas/ResearchProgress'
+        resourcesConsumed:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        message:
+          type: string
+          example: "Recherche démarrée avec succès"
+      required:
+        - success
+        - researchProgress
+        - resourcesConsumed
+        - message
+
+    InventoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        message:
+          type: string
+          example: "Inventaire mis à jour avec succès"
+      required:
+        - success
+        - updatedInventory
+        - message
+
+    CraftingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        itemsCrafted:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        resourcesConsumed:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        message:
+          type: string
+          example: "Items craftés avec succès"
+      required:
+        - success
+        - itemsCrafted
+        - resourcesConsumed
+        - updatedInventory
+        - message
+
+    MarketSaleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              resourceId:
+                type: string
+              quantity:
+                type: number
+              unitPrice:
+                type: number
+              totalValue:
+                type: number
+              timestamp:
+                type: string
+                format: date-time
+        totalEarned:
+          type: number
+          example: 620
+        newBalance:
+          type: number
+          example: 10620
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        message:
+          type: string
+          example: "Ressources vendues avec succès"
+      required:
+        - success
+        - transactions
+        - totalEarned
+        - newBalance
+        - updatedInventory
+        - message
+
+    OrderCompletionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        order:
+          $ref: '#/components/schemas/SpecialOrder'
+        rewardEarned:
+          type: number
+          example: 2500
+        bonusEarned:
+          type: number
+          example: 500
+        totalEarned:
+          type: number
+          example: 3000
+        newBalance:
+          type: number
+          example: 13000
+        message:
+          type: string
+          example: "Commande terminée avec succès"
+      required:
+        - success
+        - order
+        - rewardEarned
+        - bonusEarned
+        - totalEarned
+        - newBalance
+        - message
+
+    OfflineProductionResponse:
+      type: object
+      properties:
+        offlineDuration:
+          type: number
+          example: 9000
+        productionResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        machineDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              machineId:
+                type: string
+              cyclesCompleted:
+                type: integer
+              resourcesProduced:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceQuantity'
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        summary:
+          type: string
+          example: "Pendant votre absence de 2h30, vos machines ont produit 450 minerais de fer."
+      required:
+        - offlineDuration
+        - productionResults
+        - machineDetails
+        - updatedInventory
+        - summary
+
+    # Modèles de statistiques
+    ProductionMetric:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        totalProduced:
+          type: number
+          example: 1500
+        productionRate:
+          type: number
+          example: 62.5
+        machineContribution:
+          type: object
+          additionalProperties:
+            type: number
+          example:
+            mine_001: 800
+            mine_002: 700
+      required:
+        - resourceId
+        - totalProduced
+        - productionRate
+        - machineContribution
+
+    ProductionStatistics:
+      type: object
+      properties:
+        timeRange:
+          type: string
+          example: "24h"
+        productionMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductionMetric'
+      required:
+        - timeRange
+        - productionMetrics
+
+    DashboardMetrics:
+      type: object
+      properties:
+        totalMachines:
+          type: integer
+          example: 15
+        activeMachines:
+          type: integer
+          example: 12
+        totalProduction:
+          type: number
+          example: 145.5
+        totalResources:
+          type: number
+          example: 2847
+        efficiency:
+          type: number
+          example: 85.2
+        revenue:
+          type: number
+          example: 15420
+        laboratoryCount:
+          type: integer
+          example: 3
+        activeResearchCount:
+          type: integer
+          example: 2
+        completedResearchCount:
+          type: integer
+          example: 8
+      required:
+        - totalMachines
+        - activeMachines
+        - totalProduction
+        - totalResources
+        - efficiency
+        - revenue
+        - laboratoryCount
+        - activeResearchCount
+        - completedResearchCount
+
+    MachinePerformance:
+      type: object
+      properties:
+        machineId:
+          type: string
+          example: "mine_001"
+        uptime:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.95
+        efficiency:
+          type: number
+          minimum: 0
+          maximum: 200
+          example: 98.5
+        totalOutput:
+          type: number
+          example: 1200
+        averageCycleTime:
+          type: number
+          example: 1.8
+        energyConsumption:
+          type: number
+          example: 450
+        maintenanceRequired:
+          type: boolean
+          example: false
+      required:
+        - machineId
+        - uptime
+        - efficiency
+        - totalOutput
+        - averageCycleTime
+        - energyConsumption
+        - maintenanceRequired
+
+    # Modèles de configuration
+    GameConfig:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        features:
+          type: object
+          properties:
+            research:
+              type: boolean
+            market:
+              type: boolean
+            achievements:
+              type: boolean
+            multiplayer:
+              type: boolean
+          example:
+            research: true
+            market: true
+            achievements: true
+            multiplayer: false
+        limits:
+          type: object
+          properties:
+            maxMachines:
+              type: integer
+            maxLaboratories:
+              type: integer
+            maxInventorySlots:
+              type: integer
+          example:
+            maxMachines: 100
+            maxLaboratories: 10
+            maxInventorySlots: 1000
+        balancing:
+          type: object
+          properties:
+            baseMachineCosts:
+              type: object
+              additionalProperties:
+                type: number
+            productionMultipliers:
+              type: object
+              properties:
+                speed:
+                  type: number
+                efficiency:
+                  type: number
+            researchSpeedMultiplier:
+              type: number
+            marketVolatility:
+              type: number
+          example:
+            baseMachineCosts:
+              mine: 500
+              furnace: 800
+              assembler: 1200
+            productionMultipliers:
+              speed: 1.0
+              efficiency: 1.0
+            researchSpeedMultiplier: 1.0
+            marketVolatility: 0.1
+      required:
+        - version
+        - features
+        - limits
+        - balancing
+
+    MachineTypeConfig:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Mine"
+        icon:
+          type: string
+          example: "🏔️"
+        baseCost:
+          type: number
+          example: 500
+        maxLevel:
+          type: integer
+          example: 5
+        upgradeMultiplier:
+          type: number
+          example: 1.5
+        energyConsumption:
+          type: number
+          example: 10
+        availableUpgrades:
+          type: array
+          items:
+            type: string
+          example: ["speed", "efficiency", "capacity"]
+        description:
+          type: string
+          example: "Extrait des minerais du sol"
+      required:
+        - name
+        - icon
+        - baseCost
+        - maxLevel
+        - upgradeMultiplier
+        - energyConsumption
+        - availableUpgrades
+        - description
+
+    # Modèles d'erreur et de réponse générique
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Opération effectuée avec succès"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+      required:
+        - success
+        - message
+        - timestamp
+
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "INSUFFICIENT_FUNDS"
+            message:
+              type: string
+              example: "Pas assez d'argent pour cette action"
+            details:
+              type: object
+              additionalProperties: true
+              example:
+                required: 1000
+                available: 750
+            timestamp:
+              type: string
+              format: date-time
+              example: "2025-01-15T10:30:00Z"
+          required:
+            - code
+            - message
+            - timestamp
+      required:
+        - error
+
+  # Réponses standardisées
+  responses:
+    UnauthorizedError:
+      description: Token d'authentification manquant ou invalide
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        example: "UNAUTHORIZED"
+                      message:
+                        example: "Token d'authentification requis"
+
+    BadRequestError:
+      description: Requête invalide
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        example: "BAD_REQUEST"
+                      message:
+                        example: "Paramètres de requête invalides"
+
+    NotFoundError:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        example: "NOT_FOUND"
+                      message:
+                        example: "Ressource non trouvée"
+
+    InsufficientFundsError:
+      description: Fonds insuffisants
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        example: "INSUFFICIENT_FUNDS"
+                      message:
+                        example: "Pas assez d'argent pour cette action"
+
+    InsufficientResourcesError:
+      description: Ressources insuffisantes
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        example: "INSUFFICIENT_RESOURCES"
+                      message:
+                        example: "Ressources insuffisantes pour cette action"
+
+    InternalServerError:
+      description: Erreur interne du serveur
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        example: "INTERNAL_SERVER_ERROR"
+                      message:
+                        example: "Une erreur interne s'est produite"
+
+# Tags pour organiser la documentation
+tags:
+  - name: Player
+    description: Gestion de l'état du joueur et de sa progression
+  - name: Machines
+    description: Gestion des machines (mines, fours, assembleurs)
+  - name: Recipes
+    description: Système de recettes et de production
+  - name: Inventory
+    description: Gestion de l'inventaire et des ressources
+  - name: Resources
+    description: Définition et configuration des ressources
+  - name: Research
+    description: Système de recherche et laboratoires
+  - name: Market
+    description: Marché et système économique
+  - name: Statistics
+    description: Statistiques et métriques de performance
+  - name: Events
+    description: Événements temps réel et notifications
+  - name: Achievements
+    description: Système de succès et récompenses
+  - name: Configuration
+    description: Configuration du jeu et métadonnées

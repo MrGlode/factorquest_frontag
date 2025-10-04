@@ -1,0 +1,538 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Resources API
+  description: |
+    API pour la gestion des ressources, inventaire et recettes dans FactoQuest.
+    Gère les définitions de ressources, l'inventaire du joueur, les recettes de production et le crafting.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/resources/v1'
+security:
+  - default: []
+tags:
+  - name: resources
+    description: Operations related to resources management.
+  - name: inventory
+    description: Operations related to inventory management.
+  - name: recipes
+    description: Operations related to recipes management.
+paths:
+  /:
+    get:
+      tags:
+        - resources
+      description: Liste toutes les ressources du jeu
+      operationId: getResources
+      responses:
+        '200':
+          description: Liste des ressources récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Resource'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /inventory/add:
+    post:
+      tags:
+        - inventory
+      description: Ajouter des ressources à l'inventaire
+      operationId: addToInventory
+      requestBody:
+        $ref: '#/components/requestBodies/InventoryUpdate'
+      responses:
+        '201':
+          description: Ressources ajoutées avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Type de média non supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /inventory/remove:
+    post:
+      tags:
+        - inventory
+      description: Retirer des ressources de l'inventaire
+      operationId: removeFromInventory
+      requestBody:
+        $ref: '#/components/requestBodies/InventoryUpdate'
+      responses:
+        '200':
+          description: Ressources retirées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+        '400':
+          description: Ressources insuffisantes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /inventory/craft:
+    post:
+      tags:
+        - inventory
+      description: Crafter des items
+      operationId: craftItems
+      requestBody:
+        $ref: '#/components/requestBodies/CraftingRequest'
+      responses:
+        '201':
+          description: Items craftés avec succès
+          headers:
+            Location:
+              description: L'URL de la nouvelle ressource créée
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Content-Type:
+              description: Le type de contenu du corps de la réponse
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CraftingResponse'
+        '400':
+          description: Requête invalide ou ressources insuffisantes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /recipes:
+    get:
+      tags:
+        - recipes
+      description: Liste toutes les recettes disponibles
+      operationId: getRecipes
+      responses:
+        '200':
+          description: Liste des recettes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recipes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  '/recipes/machine/{machineType}':
+    get:
+      tags:
+        - recipes
+      description: Recettes disponibles pour un type de machine
+      operationId: getRecipesByMachineType
+      responses:
+        '200':
+          description: Recettes pour le type de machine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machineType:
+                    $ref: '#/components/schemas/MachineType'
+                  recipes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+        '404':
+          description: Type de machine non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    parameters:
+      - name: machineType
+        in: path
+        description: Type de machine
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/MachineType'
+
+components:
+  schemas:
+    MachineType:
+      title: Type de machine
+      type: string
+      enum: [mine, furnace, assembler]
+    
+    ResourceQuantity:
+      title: Quantité de ressource
+      type: object
+      required:
+        - resourceId
+        - quantity
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        quantity:
+          type: number
+          minimum: 0
+          example: 50
+    
+    Resource:
+      title: Ressource
+      type: object
+      required:
+        - id
+        - name
+        - icon
+        - category
+        - rarity
+        - baseValue
+        - stackSize
+      properties:
+        id:
+          type: string
+          example: "iron_ore"
+        name:
+          type: string
+          example: "Minerai de Fer"
+        icon:
+          type: string
+          example: "🔗"
+        category:
+          type: string
+          enum: [ore, plate, component, finished]
+          example: "ore"
+        rarity:
+          type: string
+          enum: [common, uncommon, rare, epic, legendary]
+          example: "common"
+        baseValue:
+          type: number
+          minimum: 0
+          example: 5
+        stackSize:
+          type: integer
+          minimum: 1
+          example: 1000
+    
+    Recipe:
+      title: Recette
+      type: object
+      required:
+        - id
+        - name
+        - machineType
+        - inputs
+        - outputs
+        - duration
+        - requiredLevel
+      properties:
+        id:
+          type: string
+          example: "iron_mining"
+        name:
+          type: string
+          example: "Extraction de Fer"
+        machineType:
+          $ref: '#/components/schemas/MachineType'
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        duration:
+          type: number
+          minimum: 0.1
+          example: 2
+        requiredLevel:
+          type: integer
+          minimum: 1
+          example: 1
+        requiredResearch:
+          type: array
+          items:
+            type: string
+          example: []
+        energyCost:
+          type: number
+          minimum: 0
+          example: 10
+    
+    Inventory:
+      title: Inventaire du joueur
+      type: object
+      additionalProperties:
+        type: number
+      example:
+        iron_ore: 150
+        copper_ore: 75
+        coal: 200
+    
+    InventoryResponse:
+      title: Réponse inventaire
+      type: object
+      required:
+        - success
+        - updatedInventory
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        message:
+          type: string
+          example: "Inventaire mis à jour avec succès"
+    
+    CraftingResponse:
+      title: Réponse crafting
+      type: object
+      required:
+        - success
+        - itemsCrafted
+        - resourcesConsumed
+        - updatedInventory
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        itemsCrafted:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        resourcesConsumed:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceQuantity'
+        updatedInventory:
+          $ref: '#/components/schemas/Inventory'
+        message:
+          type: string
+          example: "Items craftés avec succès"
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  requestBodies:
+    InventoryUpdate:
+      description: Mise à jour de l'inventaire
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - resources
+            properties:
+              resources:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceQuantity'
+      required: true
+    
+    CraftingRequest:
+      description: Demande de crafting
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - recipeId
+              - quantity
+            properties:
+              recipeId:
+                type: string
+                example: "iron_gear"
+              quantity:
+                type: integer
+                minimum: 1
+                example: 5
+      required: true
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/resources/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/resources/v1/'
+  type: http
+x-wso2-basePath: /resources/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

@@ -1,0 +1,398 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Player API
+  description: |
+    API pour la gestion du joueur et de l'état du jeu dans FactoQuest.
+    Gère la progression, l'état persistant et les opérations liées au joueur.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/player/v1'
+security:
+  - default: []
+tags:
+  - name: player
+    description: Operations related to player management.
+  - name: achievements
+    description: Operations related to achievements system.
+paths:
+  /state:
+    get:
+      tags:
+        - player
+      description: Récupère l'état complet du joueur
+      operationId: getPlayerState
+      responses:
+        '200':
+          description: État du joueur récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStateResponse'
+        '401':
+          description: Token d'authentification manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+    put:
+      tags:
+        - player
+      description: Met à jour l'état du joueur
+      operationId: updatePlayerState
+      requestBody:
+        $ref: '#/components/requestBodies/PlayerStateUpdate'
+      responses:
+        '200':
+          description: État mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Token d'authentification manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /reset:
+    post:
+      tags:
+        - player
+      description: Remet à zéro la progression du joueur
+      operationId: resetPlayerProgress
+      requestBody:
+        description: Confirmation pour la remise à zéro
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmation:
+                  type: boolean
+                  example: true
+              required:
+                - confirmation
+        required: true
+      responses:
+        '200':
+          description: Progression remise à zéro avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /achievements:
+    get:
+      tags:
+        - achievements
+      description: Liste des succès du joueur
+      operationId: getAchievements
+      responses:
+        '200':
+          description: Liste des succès récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  achievements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Achievement'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+
+components:
+  schemas:
+    GameState:
+      title: État du jeu
+      type: object
+      properties:
+        money:
+          type: number
+          example: 10000
+        level:
+          type: integer
+          example: 1
+        experience:
+          type: number
+          example: 0
+        lastSaveTime:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        totalPlayTime:
+          type: number
+          example: 3600
+        achievements:
+          type: array
+          items:
+            type: string
+          example: ["first_mine", "first_research"]
+    
+    Inventory:
+      title: Inventaire du joueur
+      type: object
+      additionalProperties:
+        type: number
+      example:
+        iron_ore: 150
+        copper_ore: 75
+        coal: 200
+    
+    PlayerStateResponse:
+      title: Réponse état du joueur
+      type: object
+      required:
+        - playerId
+        - gameState
+        - inventory
+      properties:
+        playerId:
+          type: string
+          example: "player_12345"
+        gameState:
+          $ref: '#/components/schemas/GameState'
+        inventory:
+          $ref: '#/components/schemas/Inventory'
+    
+    Achievement:
+      title: Succès
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - category
+        - requirement
+        - reward
+        - isUnlocked
+      properties:
+        id:
+          type: string
+          example: "first_mine"
+        name:
+          type: string
+          example: "Premier Mineur"
+        description:
+          type: string
+          example: "Acheter votre première mine"
+        category:
+          type: string
+          enum: [milestone, production, research, market, collection]
+          example: "milestone"
+        requirement:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [machine_purchase, production_total, research_complete, market_sale, resource_collect]
+            machineType:
+              type: string
+              enum: [mine, furnace, assembler]
+            count:
+              type: integer
+            resourceId:
+              type: string
+            quantity:
+              type: number
+          required:
+            - type
+        reward:
+          type: object
+          properties:
+            money:
+              type: number
+            experience:
+              type: number
+          example:
+            money: 500
+            experience: 100
+        isUnlocked:
+          type: boolean
+          example: true
+        unlockedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T09:00:00Z"
+    
+    ApiResponse:
+      title: Réponse API générique
+      type: object
+      required:
+        - success
+        - message
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Opération effectuée avec succès"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  requestBodies:
+    PlayerStateUpdate:
+      description: Mise à jour de l'état du joueur
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - gameState
+              - inventory
+            properties:
+              gameState:
+                $ref: '#/components/schemas/GameState'
+              inventory:
+                $ref: '#/components/schemas/Inventory'
+      required: true
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/player/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/player/v1/'
+  type: http
+x-wso2-basePath: /player/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

@@ -6,8 +6,13 @@ import { Observable, Subscription } from 'rxjs';
 import { NavigationService, NavigationTab } from '../../services/navigation';
 import { GameStateService } from '../../services/game-state';
 import { MachineService } from '../../services/machine';
+import { InventoryService } from '../../services/inventory';
+import { MarketService } from '../../services/market';
+import { ResearchService } from '../../services/research';
+import { AuthService } from'../../services/auth.service';
 
 import { GameState } from '../../models/game.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-header',
@@ -19,6 +24,7 @@ import { GameState } from '../../models/game.model';
 export class HeaderComponent implements OnInit, OnDestroy {
   
   gameState$: Observable<GameState>;
+  currentUser$: Observable<User | null>;
   
   private subscriptions: Subscription[] = [];
 
@@ -26,9 +32,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private router: Router,
     private navigationService: NavigationService,
     private gameStateService: GameStateService,
-    private machineService: MachineService
+    private machineService: MachineService,
+    private inventoryService: InventoryService,
+    private marketService: MarketService,
+    private researchService: ResearchService,
+    private authService: AuthService
   ) {
     this.gameState$ = this.gameStateService.getGameState$();
+    this.currentUser$ = this.authService.currentUser$;
   }
 
   ngOnInit(): void {
@@ -78,10 +89,43 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Debug: reset du jeu
   resetGame(): void {
-    if (confirm('Êtes-vous sûr de vouloir recommencer ?')) {
+    if (confirm('Êtes-vous sûr de vouloir tout recommencer ? Cela effacera TOUS vos progrès (machines, recherches, argent, inventaire, etc.)')) {
+      // Reset de tous les services dans l'ordre approprié
+      console.log('🔄 Réinitialisation complète du jeu...');
+      
+      // 1. Reset de la recherche (doit être fait en premier car les machines peuvent en dépendre)
+      this.researchService.reset();
+      console.log('✅ Recherches réinitialisées');
+      
+      // 2. Reset des machines 
+      this.machineService.reset();
+      console.log('✅ Machines réinitialisées');
+      
+      // 3. Reset de l'inventaire
+      this.inventoryService.reset();
+      console.log('✅ Inventaire réinitialisé');
+      
+      // 4. Reset du marché
+      this.marketService.reset();
+      console.log('✅ Marché réinitialisé');
+      
+      // 5. Reset de l'état du jeu (doit être fait en dernier)
       this.gameStateService.reset();
+      console.log('✅ État du jeu réinitialisé');
+      
+      // 6. Redirection vers le dashboard
       this.router.navigate(['/dashboard']);
-      console.log('Jeu réinitialisé !');
+      console.log('🎮 Jeu complètement réinitialisé ! Bon redémarrage !');
+      
+      alert('🎮 Jeu réinitialisé avec succès ! Bienvenue dans votre nouvel empire !');
+    }
+  }
+
+  // Déconnexion
+  logout(): void {
+    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+      this.authService.logout();
+      this.router.navigate(['/login']);
     }
   }
 }

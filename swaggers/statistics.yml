@@ -1,0 +1,324 @@
+openapi: 3.0.0
+info:
+  title: FactoQuest Statistics API
+  description: |
+    API pour les statistiques et métriques dans FactoQuest.
+    Gère les données de production, performance et métriques du tableau de bord.
+  contact:
+    name: FactoQuest Support
+    email: support@factoquest.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  version: 1.0.0
+servers:
+  - url: 'https://api.factoquest.com/statistics/v1'
+security:
+  - default: []
+tags:
+  - name: statistics
+    description: Operations related to statistics and metrics.
+paths:
+  /production:
+    get:
+      tags:
+        - statistics
+      description: Statistiques de production
+      operationId: getProductionStatistics
+      parameters:
+        - name: timeRange
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [1h, 6h, 24h, 7d, 30d]
+            default: "24h"
+      responses:
+        '200':
+          description: Statistiques de production récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductionStatistics'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /dashboard:
+    get:
+      tags:
+        - statistics
+      description: Métriques pour le tableau de bord
+      operationId: getDashboardMetrics
+      responses:
+        '200':
+          description: Métriques du tableau de bord récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  /performance:
+    get:
+      tags:
+        - statistics
+      description: Performance des machines
+      operationId: getMachinePerformance
+      responses:
+        '200':
+          description: Performance des machines récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  machinePerformance:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MachinePerformance'
+        '406':
+          description: Le type de média demandé n'est pas supporté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+
+components:
+  schemas:
+    ProductionMetric:
+      title: Métrique de production
+      type: object
+      required:
+        - resourceId
+        - totalProduced
+        - productionRate
+        - machineContribution
+      properties:
+        resourceId:
+          type: string
+          example: "iron_ore"
+        totalProduced:
+          type: number
+          example: 1500
+        productionRate:
+          type: number
+          example: 62.5
+        machineContribution:
+          type: object
+          additionalProperties:
+            type: number
+          example:
+            mine_001: 800
+            mine_002: 700
+    
+    ProductionStatistics:
+      title: Statistiques de production
+      type: object
+      required:
+        - timeRange
+        - productionMetrics
+      properties:
+        timeRange:
+          type: string
+          example: "24h"
+        productionMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductionMetric'
+    
+    DashboardMetrics:
+      title: Métriques du tableau de bord
+      type: object
+      required:
+        - totalMachines
+        - activeMachines
+        - totalProduction
+        - totalResources
+        - efficiency
+        - revenue
+        - laboratoryCount
+        - activeResearchCount
+        - completedResearchCount
+      properties:
+        totalMachines:
+          type: integer
+          example: 15
+        activeMachines:
+          type: integer
+          example: 12
+        totalProduction:
+          type: number
+          example: 145.5
+        totalResources:
+          type: number
+          example: 2847
+        efficiency:
+          type: number
+          example: 85.2
+        revenue:
+          type: number
+          example: 15420
+        laboratoryCount:
+          type: integer
+          example: 3
+        activeResearchCount:
+          type: integer
+          example: 2
+        completedResearchCount:
+          type: integer
+          example: 8
+    
+    MachinePerformance:
+      title: Performance de machine
+      type: object
+      required:
+        - machineId
+        - uptime
+        - efficiency
+        - totalOutput
+        - averageCycleTime
+        - energyConsumption
+        - maintenanceRequired
+      properties:
+        machineId:
+          type: string
+          example: "mine_001"
+        uptime:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.95
+        efficiency:
+          type: number
+          minimum: 0
+          maximum: 200
+          example: 98.5
+        totalOutput:
+          type: number
+          example: 1200
+        averageCycleTime:
+          type: number
+          example: 1.8
+        energyConsumption:
+          type: number
+          example: 450
+        maintenanceRequired:
+          type: boolean
+          example: false
+    
+    ErrorListItem:
+      title: Description d'erreurs individuelles
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Description de l'erreur individuelle
+        code:
+          type: integer
+          format: int64
+    
+    Error:
+      title: Objet d'erreur retourné avec le statut HTTP 4XX
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+          description: Message d'erreur.
+        error:
+          type: array
+          description: Liste des erreurs détaillées
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+        description:
+          type: string
+          description: Description détaillée de l'erreur.
+        code:
+          type: integer
+          format: int64
+        moreInfo:
+          type: string
+          description: URL avec plus de détails sur l'erreur.
+
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://test.com'
+          scopes: {}
+
+x-wso2-auth-header: Authorization
+x-wso2-api-key-header: ApiKey
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - Internal-Key
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://api.factoquest.com/statistics/v1/'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+    - 'https://dev-api.factoquest.com/statistics/v1/'
+  type: http
+x-wso2-basePath: /statistics/1.0.0
+x-wso2-transports:
+  - http
+  - https
+x-wso2-application-security:
+  security-types:
+    - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

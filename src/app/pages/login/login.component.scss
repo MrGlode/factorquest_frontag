@@ -1,0 +1,226 @@
+// src/app/pages/login/login.component.scss
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+  
+  h1 {
+    font-size: 2.5rem;
+    margin: 0 0 12px 0;
+    color: #333;
+  }
+  
+  p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+.form-group {
+  margin-bottom: 24px;
+  
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+  }
+  
+  input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    &:disabled {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+    
+    &::placeholder {
+      color: #999;
+    }
+  }
+}
+
+.password-input-wrapper {
+  position: relative;
+  
+  input {
+    padding-right: 48px;
+  }
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+  
+  &:hover:not(:disabled) {
+    opacity: 1;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+  }
+}
+
+.checkbox-group {
+  margin-bottom: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 400;
+  
+  input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+    accent-color: #667eea;
+    
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+  
+  span {
+    user-select: none;
+  }
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border-left: 4px solid #c33;
+}
+
+.btn-primary,
+.btn-secondary {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  }
+  
+  &:not(:disabled):active {
+    transform: translateY(0);
+  }
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  color: #667eea;
+  margin-top: 12px;
+  
+  &:not(:disabled):hover {
+    background: #e8e8e8;
+  }
+}
+
+.auth-footer {
+  margin-top: 32px;
+  text-align: center;
+  
+  p {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0 0 20px 0;
+    
+    a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.test-account {
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  
+  small {
+    display: block;
+    color: #999;
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+}
