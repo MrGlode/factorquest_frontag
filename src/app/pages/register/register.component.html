@@ -34,31 +34,51 @@
           [disabled]="isLoading">
       </div>
       
-      <div class="form-group">
+       <div class="form-group">
         <label for="password">Mot de passe</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password"
-          [(ngModel)]="formData.password"
-          required
-          minlength="6"
-          placeholder="••••••••"
-          [disabled]="isLoading">
+        <div class="password-input-wrapper">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            id="password" 
+            name="password"
+            [(ngModel)]="formData.password"
+            required
+            minlength="6"
+            placeholder="••••••••"
+            [disabled]="isLoading">
+          <button 
+            type="button" 
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            [disabled]="isLoading"
+            tabindex="-1">
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
         <small>Au moins 6 caractères</small>
       </div>
       
       <div class="form-group">
         <label for="confirmPassword">Confirmer le mot de passe</label>
-        <input 
-          type="password" 
-          id="confirmPassword" 
-          name="confirmPassword"
-          [(ngModel)]="confirmPassword"
-          required
-          minlength="6"
-          placeholder="••••••••"
-          [disabled]="isLoading">
+        <div class="password-input-wrapper">
+          <input 
+            [type]="showConfirmPassword ? 'text' : 'password'" 
+            id="confirmPassword" 
+            name="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            required
+            minlength="6"
+            placeholder="••••••••"
+            [disabled]="isLoading">
+          <button 
+            type="button" 
+            class="toggle-password"
+            (click)="toggleConfirmPasswordVisibility()"
+            [disabled]="isLoading"
+            tabindex="-1">
+            {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
       </div>
       
       <div class="error-message" *ngIf="errorMessage">

@@ -153,6 +153,27 @@ export class AuthService {
     this.currentUserSubject.next(null);
     console.log('👋 Déconnexion');
   }
+
+  // Demande de réinitialisation de mot de passe (mocké)
+  public requestPasswordReset(email: string): Observable<void> {
+    return new Observable<void>(observer => {
+      setTimeout(() => {
+        const userRecord = this.mockUsers.get(email);
+        
+        if (!userRecord) {
+          observer.error(new Error('Aucun compte associé à cet email'));
+          return;
+        }
+        
+        // En prod, on enverrait un vrai email avec un token
+        console.log('📧 Email de réinitialisation envoyé à:', email);
+        console.log('🔗 Lien de réinitialisation (mock):', `https://factoquest.com/reset-password?token=mock-token-${Date.now()}`);
+        
+        observer.next();
+        observer.complete();
+      }, 1000); // Délai de 1s pour simuler l'envoi d'email
+    });
+  }
   
   // Obtenir le token
   public getToken(): string | null {

@@ -23,6 +23,8 @@ export class RegisterComponent {
   confirmPassword: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
   
   constructor(
     private authService: AuthService,
@@ -59,5 +61,14 @@ export class RegisterComponent {
         console.error('Registration error:', error);
       }
     });
+  }
+  // Toggle affichage du mot de passe
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+  
+  // Toggle affichage de la confirmation
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 }

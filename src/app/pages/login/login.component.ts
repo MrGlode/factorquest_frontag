@@ -21,17 +21,32 @@ export class LoginComponent {
   
   errorMessage: string = '';
   isLoading: boolean = false;
-  
+  showPassword: boolean = false;
+  rememberMe: boolean = false;
+
   constructor(
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      this.credentials.email = savedEmail;
+      this.rememberMe = true;
+    }
+  }
   
   onSubmit(): void {
     this.errorMessage = '';
     this.isLoading = true;
     
+    // Gérer "Se souvenir de moi"
+    if (this.rememberMe) {
+      localStorage.setItem('rememberedEmail', this.credentials.email);
+    } else {
+      localStorage.removeItem('rememberedEmail');
+    }
+
     this.authService.login(this.credentials).subscribe({
       next: (response) => {
         this.isLoading = false;
@@ -53,5 +68,10 @@ export class LoginComponent {
   fillTestAccount(): void {
     this.credentials.email = 'test@factoquest.com';
     this.credentials.password = 'test123';
+  }
+
+  // Toggle affichage du mot de passe
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 }

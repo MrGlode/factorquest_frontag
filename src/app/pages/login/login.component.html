@@ -23,15 +23,36 @@
       
       <div class="form-group">
         <label for="password">Mot de passe</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password"
-          [(ngModel)]="credentials.password"
-          required
-          minlength="6"
-          placeholder="••••••••"
-          [disabled]="isLoading">
+        <div class="password-input-wrapper">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            id="password" 
+            name="password"
+            [(ngModel)]="credentials.password"
+            required
+            minlength="6"
+            placeholder="••••••••"
+            [disabled]="isLoading">
+          <button 
+            type="button" 
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            [disabled]="isLoading"
+            tabindex="-1">
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            name="rememberMe"
+            [(ngModel)]="rememberMe"
+            [disabled]="isLoading">
+          <span>Se souvenir de moi</span>
+        </label>
       </div>
       
       <div class="error-message" *ngIf="errorMessage">
@@ -51,6 +72,10 @@
       <p>
         Pas encore de compte ? 
         <a routerLink="/register">Créer un compte</a>
+      </p>
+      
+      <p>
+        <a routerLink="/forgot-password">Mot de passe oublié ?</a>
       </p>
       
       <div class="test-account">
