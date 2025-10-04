@@ -1,0 +1,369 @@
+// src/app/pages/leaderboard/leaderboard.component.scss
+
+.leaderboard-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #333;
+  }
+}
+
+.refresh-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+}
+
+.view-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.view-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: #667eea;
+  }
+  
+  &.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+  }
+}
+
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 48px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+}
+
+.podium-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-8px);
+  }
+  
+  &.first {
+    order: 2;
+    
+    .podium-stand {
+      height: 140px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    }
+    
+    .podium-avatar {
+      font-size: 3.5rem;
+    }
+  }
+  
+  &.second {
+    order: 1;
+    
+    .podium-stand {
+      height: 100px;
+      background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    }
+  }
+  
+  &.third {
+    order: 3;
+    
+    .podium-stand {
+      height: 80px;
+      background: linear-gradient(135deg, #cd7f32 0%, #e6a157 100%);
+    }
+  }
+}
+
+.podium-rank {
+  font-size: 3rem;
+}
+
+.podium-player {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+}
+
+.podium-avatar {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.podium-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.podium-score {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.podium-level {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.podium-stand {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px 8px 0 0;
+  color: white;
+  font-weight: 700;
+  font-size: 2rem;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-table {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px 100px 150px;
+  align-items: center;
+  padding: 16px 24px;
+  gap: 16px;
+}
+
+.table-header {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-weight: 700;
+  color: #333;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.table-row {
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: #f9f9f9;
+    transform: scale(1.01);
+  }
+  
+  &.current-player {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left: 4px solid #2196f3;
+    font-weight: 600;
+  }
+  
+  &.rank-1 {
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+  }
+  
+  &.rank-2 {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+  }
+  
+  &.rank-3 {
+    background: linear-gradient(135deg, #fff0e6 0%, #ffe4cc 100%);
+  }
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  background: #e0e0e0;
+  color: #666;
+  
+  &.gold {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #b8860b;
+    font-size: 1.5rem;
+  }
+  
+  &.silver {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    color: #666;
+    font-size: 1.5rem;
+  }
+  
+  &.bronze {
+    background: linear-gradient(135deg, #cd7f32 0%, #e6a157 100%);
+    color: #8b4513;
+    font-size: 1.5rem;
+  }
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.you-badge {
+  display: inline-block;
+  background: #2196f3;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  margin-left: 8px;
+  font-weight: 700;
+}
+
+.level-badge {
+  background: #4caf50;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.achievements-count {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.score-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.current-player-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 24px;
+  
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 1.2rem;
+  }
+}
+
+.player-rank-card {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.rank-display,
+.player-score {
+  text-align: center;
+}
+
+.rank-number,
+.score-number {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.rank-label,
+.score-label {
+  display: block;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .podium {
+    flex-direction: column;
+    
+    .podium-place {
+      order: unset !important;
+    }
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 60px 1fr 80px;
+    font-size: 0.85rem;
+  }
+  
+  .col-achievements,
+  .col-level {
+    display: none;
+  }
+  
+  .player-rank-card {
+    flex-direction: column;
+    gap: 20px;
+  }
+}

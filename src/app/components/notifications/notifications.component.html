@@ -1,0 +1,22 @@
+<!-- src/app/components/notifications/notifications.component.html -->
+
+<div class="notifications-container">
+  <div 
+    *ngFor="let notification of notifications$ | async" 
+    class="notification"
+    [ngClass]="getNotificationClass(notification.type)">
+    
+    <div class="notification-icon" *ngIf="notification.icon">
+      {{ notification.icon }}
+    </div>
+    
+    <div class="notification-content">
+      <div class="notification-title">{{ notification.title }}</div>
+      <div class="notification-message">{{ notification.message }}</div>
+    </div>
+    
+    <button class="notification-close" (click)="close(notification.id)">
+      ✕
+    </button>
+  </div>
+</div>

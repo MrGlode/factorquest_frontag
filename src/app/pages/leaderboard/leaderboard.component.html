@@ -1,0 +1,134 @@
+<!-- src/app/pages/leaderboard/leaderboard.component.html -->
+
+<div class="leaderboard-container">
+  
+  <!-- Header -->
+  <div class="leaderboard-header">
+    <h1>🏆 Classement des joueurs</h1>
+    <button class="refresh-btn" (click)="refresh()">
+      🔄 Rafraîchir
+    </button>
+  </div>
+
+  <!-- Sélection de vue -->
+  <div class="view-selector">
+    <button 
+      class="view-btn"
+      [class.active]="selectedView === 'top'"
+      (click)="switchView('top')">
+      👑 Top 10
+    </button>
+    <button 
+      class="view-btn"
+      [class.active]="selectedView === 'around'"
+      (click)="switchView('around')">
+      📍 Autour de moi
+    </button>
+  </div>
+
+  <!-- Podium (Top 3) -->
+  <div class="podium" *ngIf="leaderboard$ | async as leaderboard">
+    <ng-container *ngIf="selectedView === 'top'">
+    <div class="podium-place second" *ngIf="leaderboard[1]">
+      <div class="podium-rank">🥈</div>
+      <div class="podium-player">
+        <div class="podium-avatar">👤</div>
+        <div class="podium-name">{{ leaderboard[1].username }}</div>
+        <div class="podium-score">{{ formatNumber(leaderboard[1].score) }} pts</div>
+        <div class="podium-level">Niv. {{ leaderboard[1].level }}</div>
+      </div>
+      <div class="podium-stand">2</div>
+    </div>
+
+    <div class="podium-place first" *ngIf="leaderboard[0]">
+      <div class="podium-rank">🥇</div>
+      <div class="podium-player">
+        <div class="podium-avatar">👤</div>
+        <div class="podium-name">{{ leaderboard[0].username }}</div>
+        <div class="podium-score">{{ formatNumber(leaderboard[0].score) }} pts</div>
+        <div class="podium-level">Niv. {{ leaderboard[0].level }}</div>
+      </div>
+      <div class="podium-stand">1</div>
+    </div>
+
+    <div class="podium-place third" *ngIf="leaderboard[2]">
+      <div class="podium-rank">🥉</div>
+      <div class="podium-player">
+        <div class="podium-avatar">👤</div>
+        <div class="podium-name">{{ leaderboard[2].username }}</div>
+        <div class="podium-score">{{ formatNumber(leaderboard[2].score) }} pts</div>
+        <div class="podium-level">Niv. {{ leaderboard[2].level }}</div>
+      </div>
+      <div class="podium-stand">3</div>
+    </div>
+    </ng-container>
+  </div>
+
+  <!-- Table du classement -->
+  <div class="leaderboard-table">
+    <div class="table-header">
+      <div class="col-rank">Rang</div>
+      <div class="col-player">Joueur</div>
+      <div class="col-level">Niveau</div>
+      <div class="col-achievements">Succès</div>
+      <div class="col-score">Score</div>
+    </div>
+
+    <div class="table-body">
+      <div 
+        *ngFor="let entry of getDisplayedPlayers()" 
+        class="table-row"
+        [class.current-player]="isCurrentPlayer(entry)"
+        [class.rank-1]="entry.rank === 1"
+        [class.rank-2]="entry.rank === 2"
+        [class.rank-3]="entry.rank === 3">
+        
+        <div class="col-rank">
+          <span class="rank-badge" [ngClass]="getRankClass(entry.rank)">
+            {{ getRankIcon(entry.rank) }}
+          </span>
+        </div>
+
+        <div class="col-player">
+          <div class="player-info">
+            <div class="player-avatar">👤</div>
+            <div class="player-details">
+              <div class="player-name">
+                {{ entry.username }}
+                <span class="you-badge" *ngIf="isCurrentPlayer(entry)">Vous</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-level">
+          <span class="level-badge">Niv. {{ entry.level }}</span>
+        </div>
+
+        <div class="col-achievements">
+          <span class="achievements-count">🏆 {{ entry.achievementsCount }}</span>
+        </div>
+
+        <div class="col-score">
+          <span class="score-value">{{ formatNumber(entry.score) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info du joueur actuel -->
+  <div class="current-player-info" *ngIf="leaderboardService.getCurrentPlayerEntry() as playerEntry">
+    <h3>Votre position</h3>
+    <div class="player-rank-card">
+      <div class="rank-display">
+        <span class="rank-number">#{{ playerEntry.rank }}</span>
+        <span class="rank-label">sur {{ (leaderboard$ | async)?.length }} joueurs</span>
+      </div>
+      <div class="player-score">
+        <span class="score-label">Score total</span>
+        <span class="score-number">{{ formatNumber(playerEntry.score) }}</span>
+      </div>
+    </div>
+  </div>
+
+</div>

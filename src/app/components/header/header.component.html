@@ -4,15 +4,35 @@
       <div class="money">
         💰 {{ gameState.money }} crédits
       </div>
-      <!-- Informations utilisateur -->
+       <!-- Informations utilisateur -->
       <div class="user-info" *ngIf="currentUser$ | async as user">
-        <span class="username">👤 {{ user.username }}</span>
-        <button class="logout-btn" (click)="logout()" title="Déconnexion">
+        <div class="user-details">
+          <span class="username">👤 {{ user.username }}</span>
+          
+          <!-- Niveau et progression XP -->
+          <div class="level-info" *ngIf="profile$ | async as profile">
+            <span class="level-badge">Niv. {{ profile.level }}</span>
+            <div class="xp-bar-mini">
+              <div class="xp-fill" [style.width.%]="playerStatsService.getLevelProgress()"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Actions -->
+      <div class="actions">
+        <button class="action-btn profile-btn" routerLink="/profile" title="Profil">
+          👤 Profil
+        </button>
+        <button class="action-btn leaderboard-btn" routerLink="/leaderboard" title="Classement">
+          🏆 Classement
+        </button>
+        <button class="action-btn logout-btn" (click)="logout()" title="Déconnexion">
           🚪 Déconnexion
         </button>
-      </div>
-      <div class="actions">
-        <button class="reset-btn" (click)="resetGame()">🔄 Reset</button>
+        <button class="action-btn reset-btn" (click)="resetGame()" title="Reset">
+          🔄 Reset
+        </button>
       </div>
     </div>
   </div>
