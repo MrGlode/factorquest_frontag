@@ -1,0 +1,77 @@
+<!-- src/app/components/footer/footer.component.html -->
+
+<footer class="steampunk-footer">
+  
+  <!-- Décoration engrenages -->
+  <div class="gears-decoration">
+    <div class="gear gear-1">⚙️</div>
+    <div class="gear gear-2">⚙️</div>
+    <div class="gear gear-3">⚙️</div>
+  </div>
+  
+  <!-- Contenu principal -->
+  <div class="footer-content">
+    
+    <!-- Section À propos -->
+    <div class="footer-section">
+      <h3>🏭 FactorQuest</h3>
+      <p class="footer-description">
+        Construisez votre empire industriel, automatisez votre production 
+        et devenez le maître de l'industrie !
+      </p>
+      <div class="version">Version {{ version }}</div>
+    </div>
+    
+    <!-- Section Liens -->
+    <div class="footer-section">
+      <h3>Navigation</h3>
+      <ul class="footer-links">
+        <li><a routerLink="/dashboard">📊 Tableau de bord</a></li>
+        <li><a routerLink="/profile">👤 Profil</a></li>
+        <li><a routerLink="/leaderboard">🏆 Classement</a></li>
+        <li><a routerLink="/market">🏪 Marché</a></li>
+      </ul>
+    </div>
+    
+    <!-- Section Ressources -->
+    <div class="footer-section">
+      <h3>Ressources</h3>
+      <ul class="footer-links">
+        <li><a href="#" (click)="$event.preventDefault()">📚 Guide du joueur</a></li>
+        <li><a href="#" (click)="$event.preventDefault()">🔧 Support</a></li>
+        <li><a href="#" (click)="$event.preventDefault()">📖 Wiki</a></li>
+        <li><a href="#" (click)="$event.preventDefault()">💬 Communauté</a></li>
+      </ul>
+    </div>
+    
+    <!-- Section Social -->
+    <div class="footer-section">
+      <h3>Suivez-nous</h3>
+      <div class="social-links">
+        <a href="#" class="social-link" (click)="$event.preventDefault()" title="Discord">💬</a>
+        <a href="#" class="social-link" (click)="$event.preventDefault()" title="Twitter">🐦</a>
+        <a href="#" class="social-link" (click)="$event.preventDefault()" title="GitHub">🐙</a>
+        <a href="#" class="social-link" (click)="$event.preventDefault()" title="Reddit">🤖</a>
+      </div>
+      <div class="steam-effect">💨 Powered by Steam</div>
+    </div>
+    
+  </div>
+  
+  <!-- Barre de copyright -->
+  <div class="footer-bottom">
+    <div class="divider">
+      <span class="rivet">●</span>
+      <span class="rivet">●</span>
+      <span class="rivet">●</span>
+      <span class="rivet">●</span>
+      <span class="rivet">●</span>
+    </div>
+    <p class="copyright">
+      © {{ currentYear }} FactorQuest Industries. Tous droits réservés.
+      <span class="separator">|</span>
+      Fabriqué avec ⚡ et beaucoup d'engrenages
+    </p>
+  </div>
+  
+</footer>
