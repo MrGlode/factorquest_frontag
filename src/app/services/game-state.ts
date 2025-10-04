@@ -8,6 +8,7 @@ import { ResearchService } from '../services/research';
 import { PlayerStatsService } from './player-stats.service';
 import { SaveService } from './save.service';
 import { AchievementsService } from './achievements.service';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,10 +30,18 @@ export class GameStateService {
     private researchService: ResearchService,
     private playerStatsService: PlayerStatsService,
     private saveService: SaveService,
-    private achievementsService: AchievementsService
+    private achievementsService: AchievementsService,
+    private authService: AuthService
   ) {
-    this.loadFromStorage();
-    this.calculateOfflineProgress();
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.loadFromStorage();
+        this.calculateOfflineProgress();
+      } else {
+        // Reset quand déconnexion
+        this.reset();
+      }
+    });
   }
 
   // Observable pour les changements d'état

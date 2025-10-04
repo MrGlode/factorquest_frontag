@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Inventory } from '../models/game.model';
 import { SaveService } from './save.service';
 import { PlayerStatsService } from './player-stats.service';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +15,17 @@ export class InventoryService {
 
   constructor(
     private saveService: SaveService,
-    private playerStatsService: PlayerStatsService
+    private playerStatsService: PlayerStatsService,
+    private authService: AuthService
   ) {
-    this.loadFromStorage();
+    this.authService.currentUser$.subscribe(user => {
+    if (user) {
+      this.loadFromStorage();
+    } else {
+      this.inventory = {};
+      this.inventorySubject.next({});
+    }
+  });
   }
 
   // Observable pour que les composants puissent s'abonner aux changements

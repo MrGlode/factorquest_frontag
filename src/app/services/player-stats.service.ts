@@ -36,9 +36,12 @@ export class PlayerStatsService {
   }
 
   // Initialiser les stats pour un nouveau joueur
-  private initializeStats(): PlayerStats {
+  private initializeStats(): PlayerStats | null {
     const user = this.authService.currentUserValue;
-    if (!user) throw new Error('No user logged in');
+    if (!user) {
+      console.warn('Impossible de créer des stats sans utilisateur connecté');
+      return null;
+    }
 
     return {
       userId: user.id,
@@ -59,34 +62,50 @@ export class PlayerStatsService {
 
   // Charger les stats
   private loadStats(): void {
+    const user = this.authService.currentUserValue;
+    if (!user) {
+      this.statsSubject.next(null);
+      return;
+    }
+
     let stats = this.saveService.load<PlayerStats>('stats');
     
     if (!stats) {
       stats = this.initializeStats();
-      this.saveStats(stats);
+      if (stats) {
+        this.saveStats(stats);
+      }
     }
 
-    // Mettre à jour la dernière connexion
-    stats.lastLoginDate = new Date();
-    stats.totalLogins++;
-    
-    this.statsSubject.next(stats);
-    this.saveStats(stats);
+    if (stats) {
+      // Mettre à jour la dernière connexion
+      stats.lastLoginDate = new Date();
+      stats.totalLogins++;
+      
+      this.statsSubject.next(stats);
+      this.saveStats(stats);
+    }
   }
 
   // Charger le profil
   private loadProfile(): void {
     const user = this.authService.currentUserValue;
-    if (!user) return;
+    if (!user) {
+      this.profileSubject.next(null);
+      return;
+    }
 
     let profile = this.saveService.load<PlayerProfile>('profile');
     
     if (!profile) {
+      const stats = this.statsSubject.value || this.initializeStats();
+      if (!stats) return;
+
       profile = {
         userId: user.id,
         username: user.username,
         email: user.email,
-        stats: this.statsSubject.value || this.initializeStats(),
+        stats: stats,
         achievements: [],
         level: 1,
         experience: 0,
@@ -101,11 +120,17 @@ export class PlayerStatsService {
 
   // Sauvegarder les stats
   private saveStats(stats: PlayerStats): void {
+    if (!this.authService.currentUserValue) {
+      return; // Ne pas sauvegarder si pas connecté
+    }
     this.saveService.save('stats', stats);
   }
 
   // Sauvegarder le profil
   private saveProfile(profile: PlayerProfile): void {
+    if (!this.authService.currentUserValue) {
+      return; // Ne pas sauvegarder si pas connecté
+    }
     this.saveService.save('profile', profile);
   }
 
@@ -122,7 +147,10 @@ export class PlayerStatsService {
   // Mettre à jour une stat
   private updateStat(updater: (stats: PlayerStats) => void): void {
     const stats = this.statsSubject.value;
-    if (!stats) return;
+    if (!stats) {
+      console.warn('Impossible de mettre à jour les stats sans utilisateur connecté');
+      return;
+    }
 
     updater(stats);
     
@@ -136,7 +164,10 @@ export class PlayerStatsService {
   // Mettre à jour les stats du profil
   private updateProfileStats(stats: PlayerStats): void {
     const profile = this.profileSubject.value;
-    if (!profile) return;
+    if (!profile) {
+      console.warn('Impossible de mettre à jour le profil sans utilisateur connecté');
+      return;
+    }
 
     profile.stats = stats;
     profile.lastSaveAt = new Date();
@@ -267,6 +298,11 @@ export class PlayerStatsService {
   // Reset des stats (pour debug)
   reset(): void {
     const stats = this.initializeStats();
+    if (!stats) {
+      console.warn('Impossible de reset sans utilisateur connecté');
+      return;
+    }
+    
     this.statsSubject.next(stats);
     this.saveStats(stats);
     

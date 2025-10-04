@@ -10,10 +10,10 @@ export class SaveService {
   constructor(private authService: AuthService) {}
 
   // Obtenir la clé de sauvegarde pour l'utilisateur actuel
-  private getSaveKey(key: string): string {
+  private getSaveKey(key: string): string | null {
     const user = this.authService.currentUserValue;
     if (!user) {
-      throw new Error('Aucun utilisateur connecté');
+      return null;
     }
     return `factoquest_${user.id}_${key}`;
   }
@@ -21,6 +21,10 @@ export class SaveService {
   // Sauvegarder des données pour l'utilisateur actuel
   save(key: string, data: any): void {
     const saveKey = this.getSaveKey(key);
+    if (!saveKey) {
+      // Pas d'utilisateur connecté, on ne sauvegarde rien
+      return;
+    }
     localStorage.setItem(saveKey, JSON.stringify(data));
   }
 
@@ -28,6 +32,11 @@ export class SaveService {
   load<T>(key: string, defaultValue?: T): T | null {
     try {
       const saveKey = this.getSaveKey(key);
+      if (!saveKey) {
+        // Pas d'utilisateur connecté, retourner la valeur par défaut
+        return defaultValue || null;
+      }
+      
       const saved = localStorage.getItem(saveKey);
       
       if (saved) {
@@ -44,6 +53,9 @@ export class SaveService {
   // Supprimer des données
   delete(key: string): void {
     const saveKey = this.getSaveKey(key);
+    if (!saveKey) {
+      return;
+    }
     localStorage.removeItem(saveKey);
   }
 
