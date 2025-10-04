@@ -1,0 +1,217 @@
+<!-- src/app/pages/profile/profile.component.html -->
+
+<div class="profile-container" *ngIf="profile$ | async as profile">
+  
+  <!-- Header du profil -->
+  <div class="profile-header">
+    <div class="player-info">
+      <div class="avatar">
+        <span class="avatar-icon">👤</span>
+        <span class="level-badge">Niv. {{ profile.level }}</span>
+      </div>
+      <div class="player-details">
+        <h1>{{ profile.username }}</h1>
+        <p class="email">{{ profile.email }}</p>
+        <div class="rank-info">
+          Classement: #{{ leaderboardService.getCurrentPlayerRank() }}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Barre d'XP -->
+    <div class="xp-section">
+      <div class="xp-bar-container">
+        <div class="xp-bar" [style.width.%]="playerStatsService.getLevelProgress()"></div>
+      </div>
+      <div class="xp-info">
+        <span>{{ formatNumber(profile.experience) }} XP</span>
+        <span>Prochain niveau: {{ formatNumber(playerStatsService.getXpForNextLevel()) }} XP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation onglets -->
+  <div class="profile-tabs">
+    <button 
+      class="tab-btn"
+      [class.active]="selectedTab === 'stats'"
+      (click)="switchTab('stats')">
+      📊 Statistiques
+    </button>
+    <button 
+      class="tab-btn"
+      [class.active]="selectedTab === 'achievements'"
+      (click)="switchTab('achievements')">
+      🏆 Succès ({{ achievementsService.getUnlockedCount() }}/{{ (achievements$ | async)?.length }})
+    </button>
+  </div>
+
+  <!-- Contenu des onglets -->
+  <div class="profile-content">
+    
+    <!-- Onglet Statistiques -->
+    <div class="stats-tab" *ngIf="selectedTab === 'stats' && (stats$ | async) as stats">
+      <div class="stats-grid">
+        
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatNumber(stats.totalMoneyEarned) }}</div>
+            <div class="stat-label">Crédits gagnés</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">💸</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatNumber(stats.totalMoneySpent) }}</div>
+            <div class="stat-label">Crédits dépensés</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">💎</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatNumber(stats.highestMoney) }}</div>
+            <div class="stat-label">Fortune maximale</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">⚙️</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.machinesBought }}</div>
+            <div class="stat-label">Machines achetées</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatNumber(stats.resourcesProduced) }}</div>
+            <div class="stat-label">Ressources produites</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatNumber(stats.resourcesSold) }}</div>
+            <div class="stat-label">Ressources vendues</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🔬</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.researchesCompleted }}</div>
+            <div class="stat-label">Recherches complétées</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.specialOrdersCompleted }}</div>
+            <div class="stat-label">Commandes spéciales</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">⏰</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatPlayTime(stats.totalPlayTime) }}</div>
+            <div class="stat-label">Temps de jeu</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🔑</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.totalLogins }}</div>
+            <div class="stat-label">Connexions</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Onglet Achievements -->
+    <div class="achievements-tab" *ngIf="selectedTab === 'achievements'">
+      
+      <!-- Barre de progression globale -->
+      <div class="achievements-header">
+        <h2>Progression: {{ achievementsService.getCompletionPercentage().toFixed(0) }}%</h2>
+        <div class="progress-bar-container">
+          <div class="progress-bar" [style.width.%]="achievementsService.getCompletionPercentage()"></div>
+        </div>
+      </div>
+
+      <!-- Liste des achievements -->
+      <div class="achievements-grid" *ngIf="progress$ | async as progressList">
+        <div 
+          *ngFor="let prog of progressList" 
+          class="achievement-card"
+          [class.unlocked]="prog.isUnlocked"
+          [class.in-progress]="!prog.isUnlocked && prog.percentage > 0">
+          
+          <ng-container *ngIf="achievements$ | async as achievements">
+            <ng-container *ngFor="let achievement of achievements">
+              <ng-container *ngIf="achievement.id === prog.achievementId">
+                
+                <div class="achievement-icon" [style.background]="getCategoryColor(achievement.category)">
+                  {{ achievement.icon }}
+                </div>
+                
+                <div class="achievement-content">
+                  <div class="achievement-name">
+                    {{ prog.isUnlocked || !achievement.isSecret ? achievement.name : '???' }}
+                  </div>
+                  <div class="achievement-description">
+                    {{ prog.isUnlocked || !achievement.isSecret ? achievement.description : 'Achievement secret' }}
+                  </div>
+                  <div class="achievement-category">{{ getCategoryLabel(achievement.category) }}</div>
+                  
+                  <!-- Barre de progression -->
+                  <div class="achievement-progress" *ngIf="!prog.isUnlocked">
+                    <div class="achievement-progress-bar">
+                      <div class="achievement-progress-fill" [style.width.%]="prog.percentage"></div>
+                    </div>
+                    <div class="achievement-progress-text">
+                      {{ formatNumber(prog.current) }} / {{ formatNumber(prog.target) }}
+                    </div>
+                  </div>
+                  
+                  <!-- Badge débloqué -->
+                  <div class="achievement-unlocked" *ngIf="prog.isUnlocked">
+                    ✅ Débloqué
+                  </div>
+                  
+                  <!-- Récompense -->
+                  <div class="achievement-reward" *ngIf="achievement.reward">
+                    Récompense: 
+                    <span *ngIf="achievement.reward.type === 'money'">
+                      💰 {{ formatNumber(achievement.reward.amount) }} crédits
+                    </span>
+                    <span *ngIf="achievement.reward.type === 'experience'">
+                      ⭐ {{ formatNumber(achievement.reward.amount) }} XP
+                    </span>
+                  </div>
+                </div>
+                
+              </ng-container>
+            </ng-container>
+          </ng-container>
+          
+        </div>
+      </div>
+
+      <!-- Easter egg pour débloquer l'achievement secret -->
+      <div class="secret-section">
+        <p class="secret-hint">Astuce: Cliquez 10 fois sur votre avatar pour débloquer un secret... 🎁</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
