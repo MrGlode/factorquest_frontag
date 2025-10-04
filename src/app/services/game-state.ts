@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { GameState } from '../models/game.model';
+import { MachineService } from '../services/machine';
+import { InventoryService } from '../services/inventory';
+import { MarketService } from '../services/market';
+import { ResearchService } from '../services/research';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +19,12 @@ export class GameStateService {
 
   private gameStateSubject = new BehaviorSubject<GameState>(this.gameState);
 
-  constructor() {
+  constructor(
+    private machineService: MachineService,
+    private inventoryService: InventoryService,
+    private marketService: MarketService,
+    private researchService: ResearchService,
+  ) {
     this.loadFromStorage();
     this.calculateOfflineProgress();
   }
@@ -114,6 +123,10 @@ export class GameStateService {
       lastSaveTime: Date.now(),
       totalPlayTime: 0
     };
+    this.machineService.reset();
+    this.inventoryService.reset();
+    this.marketService.reset();
+    this.researchService.reset();
     this.saveToStorage();
     this.gameStateSubject.next({ ...this.gameState });
   }

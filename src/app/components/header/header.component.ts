@@ -36,9 +36,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private navigationService: NavigationService,
     private gameStateService: GameStateService,
     private machineService: MachineService,
-    private inventoryService: InventoryService,
-    private marketService: MarketService,
-    private researchService: ResearchService,
     private authService: AuthService,
     public playerStatsService: PlayerStatsService
   ) {
