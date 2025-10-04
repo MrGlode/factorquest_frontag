@@ -33,16 +33,53 @@
       .user-info {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+        .user-details {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          align-items: center;
         
-        .username {
-          font-size: 1rem;
-          font-weight: 500;
-          padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.15);
-          border-radius: 20px;
-          backdrop-filter: blur(10px);
+          .username {
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+          }
         }
+      }
+      .level-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .level-badge {
+        background: rgba(255, 255, 255, 0.25);
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+      }
+
+      .xp-bar-mini {
+        flex: 1;
+        min-width: 80px;
+        height: 6px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .xp-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50, #8bc34a);
+        transition: width 0.5s ease;
       }
 
       .logout-btn, .reset-btn {
@@ -62,7 +99,26 @@
           background: linear-gradient(145deg, #DC143C 0%, #B7410E 100%);
           transform: translateY(-2px);
         }
-      }    
+      }
+
+      .profile-btn, .leaderboard-btn {
+        font-size: 0.9em;
+        padding: 10px 16px;
+        border: 2px solid #B8860B;
+        border-radius: 8px;
+        background: linear-gradient(145deg, #2F4F4F 0%, #556B2F 100%);
+        color: #F4E4BC;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+
+        &:hover {
+          background: linear-gradient(145deg, #556B2F 0%, #2F4F4F 100%);
+          transform: translateY(-2px);
+        }
+      }
     }
   }
 

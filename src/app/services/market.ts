@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MarketPrice, SpecialOrder, Transaction } from '../models/game.model';
+import { SaveService } from './save.service';
+import { PlayerStatsService } from './player-stats.service';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +39,10 @@ export class MarketService {
     merchant: ['Compagnie des Métaux', 'Négoce Steam & Co', 'Maison du Cuivre']
   };
 
-  constructor() {
+  constructor(
+    private saveService: SaveService,
+    private playerStatsService: PlayerStatsService
+  ) {
     this.initializeMarket();
     this.loadFromStorage();
     this.startMarketFluctuations();
@@ -117,7 +122,8 @@ export class MarketService {
     // Mise à jour du marché (baisse de la demande après vente)
     marketPrice.lastSold = Date.now();
     marketPrice.demand = Math.max(0.1, marketPrice.demand - (quantity * 0.01));
-    
+    this.playerStatsService.trackResourceSold(quantity);
+    this.playerStatsService.trackMoneyEarned(totalValue);
     this.saveToStorage();
     return totalValue;
   }
@@ -303,11 +309,11 @@ export class MarketService {
       nextOrderId: this.nextOrderId,
       nextTransactionId: this.nextTransactionId
     };
-    localStorage.setItem('factoquest_market', JSON.stringify(data));
+    this.saveService.save('factoquest_market', data);
   }
 
   private loadFromStorage(): void {
-    const saved = localStorage.getItem('factoquest_market');
+    const saved = this.saveService.load<any>('factoquest_market');
     if (saved) {
       try {
         const data = JSON.parse(saved);

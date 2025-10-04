@@ -10,6 +10,8 @@ import { Furnaces } from './pages/furnaces/furnaces';
 import { Assemblers } from './pages/assemblers/assemblers';
 import { Market } from './pages/market/market';
 import { ResearchComponent } from './pages/research/research';
+import { ProfileComponent } from './pages/profile/profile.component';
+import { LeaderboardComponent } from './pages/leaderboard/leaderboard.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -27,7 +29,8 @@ export const routes: Routes = [
       { path: 'assemblers', component: Assemblers },
       { path: 'market', component: Market },
       { path: 'research', component: ResearchComponent },
-      { path: '**', redirectTo: '/dashboard' } // Fallback
+      { path: 'profile', component: ProfileComponent },
+      { path: 'leaderboard', component: LeaderboardComponent },
     ]
   },
   { path: '**', redirectTo: '/login' } // Fallback for unauthenticated routes
