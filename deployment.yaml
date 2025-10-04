@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontag
+  template:
+    metadata:
+      labels:
+        app: frontag
+    spec:
+      containers:
+        - name: frontag
+          image: mrglode/factorquest:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontag-service
+spec:
+  selector:
+    app: frontag
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+#dckr_pat_gAEnGccSPuH_A3VCXgzj2Q7enKA
