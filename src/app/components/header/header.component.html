@@ -1,7 +1,7 @@
 <div class="game-header">
   <div class="header-top">
-    <div class="game-stats" *ngIf="gameState$ | async as gameState">
-      <div class="money">
+    <div class="game-stats" *ngIf="currentUser$ | async as user">
+      <div class="money" *ngIf="gameState$ | async as gameState">
         💰 {{ gameState.money }} crédits
       </div>
        <!-- Informations utilisateur -->
