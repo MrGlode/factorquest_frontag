@@ -15,7 +15,7 @@ import { LoginRequest } from '../../models/user.model';
 export class LoginComponent {
   
   credentials: LoginRequest = {
-    email: '',
+    username: '',
     password: ''
   };
   
@@ -29,9 +29,9 @@ export class LoginComponent {
     private router: Router,
     private route: ActivatedRoute
   ) {
-    const savedEmail = localStorage.getItem('rememberedEmail');
-    if (savedEmail) {
-      this.credentials.email = savedEmail;
+    const savedUsername = localStorage.getItem('rememberedUsername');
+    if (savedUsername) {
+      this.credentials.username = savedUsername;
       this.rememberMe = true;
     }
   }
@@ -42,9 +42,9 @@ export class LoginComponent {
     
     // Gérer "Se souvenir de moi"
     if (this.rememberMe) {
-      localStorage.setItem('rememberedEmail', this.credentials.email);
+      localStorage.setItem('rememberedUsername', this.credentials.username);
     } else {
-      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberedUsername');
     }
 
     this.authService.login(this.credentials).subscribe({
@@ -66,7 +66,7 @@ export class LoginComponent {
   
   // Méthode pour remplir automatiquement avec le compte de test
   fillTestAccount(): void {
-    this.credentials.email = 'test@factoquest.com';
+    this.credentials.username = 'TestPlayer';
     this.credentials.password = 'test123';
   }
 

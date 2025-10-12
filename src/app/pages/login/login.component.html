@@ -9,15 +9,14 @@
     
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="username">Nom d'utilisateur</label>
         <input 
-          type="email" 
-          id="email" 
-          name="email"
-          [(ngModel)]="credentials.email"
+          type="text" 
+          id="username" 
+          name="username"
+          [(ngModel)]="credentials.username"
           required
-          email
-          placeholder="votre@email.com"
+          placeholder="Nom d'utilisateur"
           [disabled]="isLoading">
       </div>
       
