@@ -60,7 +60,7 @@ export class ApimAuthService {
     private fetchNewToken(): Observable<string> {
         console.log("Fetching new APIM token...");
 
-        const credentials = btoa(`${environment.clientId}:${environment.clientSecret}`);
+        const credentials = btoa(`${environment.apimClientId}:${environment.apimClientSecret}`);
 
         const headers = new HttpHeaders({
             "Content-Type": "application/x-www-form-urlencoded",
@@ -68,11 +68,11 @@ export class ApimAuthService {
         });
 
         const body = new URLSearchParams({
-            'grant_type': environment.grantType,
+            'grant_type': environment.apimGrantType,
         }).toString();
 
         return this.http.post<ApimTokenResponse>(
-            environment.authUrl,
+            environment.apimTokenUrl,
             body,
             { headers }
         ).pipe(

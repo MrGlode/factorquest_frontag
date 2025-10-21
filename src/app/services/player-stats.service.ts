@@ -37,7 +37,7 @@ export class PlayerStatsService {
 
   // Initialiser les stats pour un nouveau joueur
   private initializeStats(): PlayerStats | null {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) {
       console.warn('Impossible de créer des stats sans utilisateur connecté');
       return null;
@@ -89,7 +89,7 @@ export class PlayerStatsService {
 
   // Charger le profil
   private loadProfile(): void {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) {
       this.profileSubject.next(null);
       return;
@@ -306,7 +306,7 @@ export class PlayerStatsService {
     this.statsSubject.next(stats);
     this.saveStats(stats);
     
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (user) {
       const profile: PlayerProfile = {
         userId: user.id,

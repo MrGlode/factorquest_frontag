@@ -11,7 +11,7 @@ export class SaveService {
 
   // Obtenir la clé de sauvegarde pour l'utilisateur actuel
   private getSaveKey(key: string): string | null {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) {
       return null;
     }
@@ -67,7 +67,7 @@ export class SaveService {
     research: any;
     market: any;
   }): void {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) return;
 
     const fullSave: GameSave = {
@@ -87,7 +87,7 @@ export class SaveService {
 
   // Obtenir toutes les sauvegardes d'un utilisateur
   getAllUserSaves(): string[] {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) return [];
 
     const prefix = `factoquest_${user.id}_`;

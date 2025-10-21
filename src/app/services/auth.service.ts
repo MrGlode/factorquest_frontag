@@ -183,7 +183,7 @@ export class AuthService {
   }
 
   public getUserId(): string | null {
-    return this.currentUserValue?.id || null;
+    return this.currentUserValue()?.id ?? null;
   }
 
   public isApimReady(): boolean {

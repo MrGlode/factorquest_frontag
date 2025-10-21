@@ -74,7 +74,7 @@ export class LeaderboardService {
 
   // Mettre à jour l'entrée du joueur actuel
   private updateCurrentPlayer(): void {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     const stats = this.playerStatsService.getStats();
     const profile = this.playerStatsService.getProfile();
     
@@ -130,7 +130,7 @@ export class LeaderboardService {
 
   // Obtenir le rang du joueur actuel
   public getCurrentPlayerRank(): number {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) return 0;
 
     const entry = this.mockPlayers.get(user.id);
@@ -139,7 +139,7 @@ export class LeaderboardService {
 
   // Obtenir l'entrée du joueur actuel
   public getCurrentPlayerEntry(): LeaderboardEntry | null {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     if (!user) return null;
 
     return this.mockPlayers.get(user.id) || null;

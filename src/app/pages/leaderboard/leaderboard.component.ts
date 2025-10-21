@@ -47,7 +47,7 @@ export class LeaderboardComponent implements OnInit {
 
   // Vérifier si c'est le joueur actuel
   isCurrentPlayer(entry: LeaderboardEntry): boolean {
-    const user = this.authService.currentUserValue;
+    const user = this.authService.currentUserValue();
     return user?.id === entry.userId;
   }
 

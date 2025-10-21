@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 
 import { NavigationService, NavigationTab } from '../../services/navigation';
-import { GameStateService } from '../../services/game-state';
+import { GameStateApiService } from '../../services/game-state-api.service';
 import { MachineService } from '../../services/machine';
 import { AuthService } from'../../services/auth.service';
 import { PlayerStatsService } from '../../services/player-stats.service';
@@ -31,7 +31,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private navigationService: NavigationService,
-    private gameStateService: GameStateService,
+    private gameStateService: GameStateApiService,
     private machineService: MachineService,
     private authService: AuthService,
     public playerStatsService: PlayerStatsService
