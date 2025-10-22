@@ -24,7 +24,7 @@ export interface OfflineProgressResponse {
 
 export interface InventoryResponse {
     userId: string;
-    resources: { [resourceId: string]: number };
+    items: { [resourceId: string]: number };
     lastUpdated: string;
 }
 

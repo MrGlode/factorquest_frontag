@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 
 import { ResearchService } from '../../services/research';
-import { GameStateService } from '../../services/game-state';
-import { InventoryService } from '../../services/inventory';
+import { GameStateApiService } from '../../services/game-state-api.service';
+import { InventoryApiService } from '../../services/inventory-api.service';
 import { RecipeService } from '../../services/recipe';
 
 import { Laboratory, Research, ResearchProgress, Inventory, Resource } from '../../models/game.model';
@@ -29,8 +29,8 @@ export class ResearchComponent implements OnInit, OnDestroy {
 
   constructor(
     private researchService: ResearchService,
-    private gameStateService: GameStateService,
-    private inventoryService: InventoryService,
+    private gameStateService: GameStateApiService,
+    private inventoryService: InventoryApiService,
     private recipeService: RecipeService
   ) {
     this.laboratories$ = this.researchService.getLaboratories$();

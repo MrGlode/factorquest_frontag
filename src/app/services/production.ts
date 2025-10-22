@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { MachineService } from './machine';
 import { RecipeService } from './recipe';
-import { InventoryService } from './inventory';
-import { GameStateService } from './game-state';
+import { InventoryApiService } from './inventory-api.service';
+import { GameStateApiService } from './game-state-api.service';
 import { ResearchService } from './research';
 
 @Injectable({
@@ -15,8 +15,8 @@ export class ProductionService {
   constructor(
     private machineService: MachineService,
     private recipeService: RecipeService,
-    private inventoryService: InventoryService,
-    private gameStateService: GameStateService,
+    private inventoryService: InventoryApiService,
+    private gameStateService: GameStateApiService,
     private researchService: ResearchService
   ) {
     this.startProductionLoop();

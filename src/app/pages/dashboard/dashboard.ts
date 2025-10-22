@@ -4,8 +4,8 @@ import { RouterModule } from '@angular/router';
 import { Observable, Subscription, interval, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { GameStateService } from '../../services/game-state';
-import { InventoryService } from '../../services/inventory';
+import { GameStateApiService } from '../../services/game-state-api.service';
+import { InventoryApiService } from '../../services/inventory-api.service';
 import { MachineService } from '../../services/machine';
 import { RecipeService } from '../../services/recipe';
 import { ProductionService } from '../../services/production';
@@ -62,8 +62,8 @@ export class Dashboard implements OnInit, OnDestroy {
   private refreshInterval = 5000; // 5 secondes
 
   constructor(
-    private gameStateService: GameStateService,
-    private inventoryService: InventoryService,
+    private gameStateService: GameStateApiService,
+    private inventoryService: InventoryApiService,
     private machineService: MachineService,
     private recipeService: RecipeService,
     private productionService: ProductionService,
@@ -123,7 +123,14 @@ export class Dashboard implements OnInit, OnDestroy {
     const { gameState, inventory, machines } = data;
     
     const activeMachines = machines.filter((m: Machine) => m.isActive);
-    const totalResources = Object.values(inventory).reduce((sum: number, qty: any) => sum + qty, 0);
+    let totalResources = 0;
+
+    if (inventory && typeof inventory === 'object') {
+      totalResources = Object.values(inventory).reduce((sum: number, qty: any) =>{
+        const numQty = Number(qty);
+        return sum + (isNaN(numQty) ? 0 : numQty);
+      }, 0);
+    }
     
     let totalProductionRate = 0;
     activeMachines.forEach((machine: Machine) => {
@@ -245,10 +252,28 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   // Formater les nombres
-  formatNumber(num: number): string {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toFixed(0);
+  formatNumber(num: any): string {
+    if (num === null || num === undefined || num === '' || isNaN(Number(num))) {
+      console.log('formatNumber: valeur non numérique reçue:', num);
+      return '0';
+    }
+
+    const numValue = typeof num === 'string' ? parseFloat(num) : Number(num);
+
+    if(isNaN(numValue)) {
+      console.log('formatNumber: valeur non numérique après conversion:', num);
+      return '0';
+    }
+
+    if (numValue >= 1000000) {
+      return (numValue / 1000000).toFixed(1) + 'M';
+    }
+
+    if (numValue >= 1000) {
+      return (numValue / 1000).toFixed(1) + 'K';
+    }
+
+    return numValue.toFixed(0);
   }
 
   // Méthodes pour la recherche

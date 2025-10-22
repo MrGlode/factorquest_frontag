@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 
-import { GameStateService } from '../../services/game-state';
-import { InventoryService } from '../../services/inventory';
+import { GameStateApiService } from '../../services/game-state-api.service';
+import { InventoryApiService } from '../../services/inventory-api.service';
 import { MachineService } from '../../services/machine';
 import { RecipeService } from '../../services/recipe';
 import { ProductionService } from '../../services/production';
@@ -29,8 +29,8 @@ export class Mines implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private gameStateService: GameStateService,
-    private inventoryService: InventoryService,
+    private gameStateService: GameStateApiService,
+    private inventoryService: InventoryApiService,
     private machineService: MachineService,
     private recipeService: RecipeService,
     private productionService: ProductionService

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 
 import { NavigationService, NavigationTab } from '../../services/navigation';
-import { GameStateService } from '../../services/game-state';
+import { GameStateApiService } from '../../services/game-state-api.service';
 import { MachineService } from '../../services/machine';
 
 import { Dashboard } from '../dashboard/dashboard';
@@ -35,7 +35,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private navigationService: NavigationService,
-    private gameStateService: GameStateService,
+    private gameStateService: GameStateApiService,
     private machineService: MachineService
   ) {
     this.gameState$ = this.gameStateService.getGameState$();

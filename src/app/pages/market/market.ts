@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 
 import { MarketService } from '../../services/market';
-import { GameStateService } from '../../services/game-state';
-import { InventoryService } from '../../services/inventory';
+import { GameStateApiService } from '../../services/game-state-api.service';
+import { InventoryApiService } from '../../services/inventory-api.service';
 import { RecipeService } from '../../services/recipe';
 
 import { MarketPrice, SpecialOrder, Transaction, Inventory, Resource } from '../../models/game.model';
@@ -34,8 +34,8 @@ price: any;
 
   constructor(
     private marketService: MarketService,
-    private gameStateService: GameStateService,
-    private inventoryService: InventoryService,
+    private gameStateService: GameStateApiService,
+    private inventoryService: InventoryApiService,
     private recipeService: RecipeService
   ) {
     this.marketPrices$ = this.marketService.getMarketPrices$();

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { GameState } from '../models/game.model';
 import { MachineService } from '../services/machine';
-import { InventoryService } from '../services/inventory';
+import { InventoryApiService } from '../services/inventory-api.service';
 import { MarketService } from '../services/market';
 import { ResearchService } from '../services/research';
 import { PlayerStatsService } from './player-stats.service';
@@ -25,7 +25,7 @@ export class GameStateService {
 
   constructor(
     private machineService: MachineService,
-    private inventoryService: InventoryService,
+    private inventoryService: InventoryApiService,
     private marketService: MarketService,
     private researchService: ResearchService,
     private playerStatsService: PlayerStatsService,
