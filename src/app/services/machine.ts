@@ -65,7 +65,7 @@ export class MachineService {
       name: `${machineInfo.name} #${this.nextMachineId - 1}`,
       cost: machineInfo.cost,
       lastProductionTime: Date.now(),
-      pausedProgress: 0,
+      pauseProgress: 0,
       isActive: false
     };
 
@@ -98,12 +98,12 @@ export class MachineService {
 
     if (machine.isActive) {
       // On met en pause : on sauvegarde le progrès actuel
-      machine.pausedProgress = currentProgress;
+      machine.pauseProgress = currentProgress;
       machine.isActive = false;
     } else {
       // On remet en route : on ajuste le temps de démarrage
       const now = Date.now();
-      machine.lastProductionTime = now - (machine.pausedProgress * 1000);
+      machine.lastProductionTime = now - (machine.pauseProgress * 1000);
       machine.isActive = true;
     }
     

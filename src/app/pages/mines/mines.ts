@@ -4,7 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 
 import { GameStateApiService } from '../../services/game-state-api.service';
 import { InventoryApiService } from '../../services/inventory-api.service';
-import { MachineService } from '../../services/machine';
+import { MachineApiService } from '../../services/machine-api.service';
 import { RecipeService } from '../../services/recipe';
 import { ProductionService } from '../../services/production';
 
@@ -31,7 +31,7 @@ export class Mines implements OnInit, OnDestroy {
   constructor(
     private gameStateService: GameStateApiService,
     private inventoryService: InventoryApiService,
-    private machineService: MachineService,
+    private machineService: MachineApiService,
     private recipeService: RecipeService,
     private productionService: ProductionService
   ) {
@@ -63,8 +63,14 @@ export class Mines implements OnInit, OnDestroy {
     
     if (this.gameStateService.canAfford(cost)) {
       if (this.gameStateService.spendMoney(cost)) {
-        const machine = this.machineService.buyMachine('mine');
-        console.log(`Mine achetée: ${machine.name} pour ${cost} crédits`);
+        this.machineService.buyMachine('mine').subscribe({
+          next: (machine) => {
+            console.log(`Mine achetée: ${machine.name} pour ${cost} crédits`);
+          },
+          error: (err) => {
+            console.log('Erreur lors de l\'achat de la mine : ' + err.message);
+          }
+        });
       }
     } else {
       alert('Pas assez d\'argent pour acheter une mine !');
@@ -73,7 +79,16 @@ export class Mines implements OnInit, OnDestroy {
 
   // Changer la recette d'une mine
   setMineRecipe(machineId: string, recipeId: string): void {
-    this.machineService.setMachineRecipe(machineId, recipeId);
+    this.machineService.setMachineRecipe(machineId, recipeId).subscribe({
+      next: (success) => {
+        if (success) {
+          console.log(`Recette de la mine ${machineId} changée avec succès`);
+        }
+      },
+      error: (err) => {
+        console.log('Erreur lors du changement de recette de la mine : ' + err.message);
+      }
+    });
   }
 
   // Activer/désactiver une mine
@@ -82,7 +97,16 @@ export class Mines implements OnInit, OnDestroy {
     const stats = this.productionService.getMachineStats(machineId);
     const currentProgress = stats ? (stats.progress * stats.recipe.duration) : 0;
     
-    this.machineService.toggleMachine(machineId, currentProgress);
+    this.machineService.toggleMachine(machineId, currentProgress).subscribe({
+      next: (success) => {
+        if (success) {
+          console.log(`Mine ${machineId} togglée avec succès`);
+        }
+      },
+      error: (err) => {
+        console.log('Erreur lors du toggle de la mine : ' + err.message);
+      }
+    });
   }
 
   // Obtenir les recettes de mines
@@ -125,7 +149,16 @@ export class Mines implements OnInit, OnDestroy {
   // Supprimer une mine
   deleteMine(machineId: string): void {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette mine ?')) {
-      this.machineService.deleteMachine(machineId);
+      this.machineService.deleteMachine(machineId).subscribe({
+        next: (success) => {
+          if (success) {
+            console.log(`Mine ${machineId} supprimée avec succès`);
+          }
+        },
+        error: (err) => {
+          console.log('Erreur lors de la suppression de la mine : ' + err.message);
+        }
+      });
     }
   }
 }

@@ -4,8 +4,13 @@ import { BehaviorSubject, Observable, throwError, of } from "rxjs";
 import { catchError, map, tap, switchMap } from "rxjs/operators";
 import { environment } from "../../environments/environment";
 import { Inventory } from "../models/game.model"
-import { InventoryResponse, UpdateInventoryRequest } from "../models/game-api.model";
+import { BatchUpdateInventoryRequest, InventoryResponse, UpdateInventoryRequest } from "../models/game-api.model";
 import { AuthService } from "./auth.service";
+
+interface PendingUpdate {
+    resourceId: string;
+    delta: number;
+}
 
 @Injectable({
     providedIn: "root",
@@ -16,18 +21,95 @@ export class InventoryApiService {
     private inventory: Inventory = {}
     private inventorySubject = new BehaviorSubject<Inventory>(this.inventory);
     private isInitialized = false;
+    private isInitializedSubject = new BehaviorSubject<boolean>(false);
+
+    private pendingUpdates: Map<string, number> = new Map();
+    private batchInterval: any;
+    private readonly BATCH_DELAY = 5000; // 5 secondes
 
     constructor(
         private http: HttpClient,
         private authService: AuthService
+        
     ) {
+        console.log('📦 InventoryApiService créé');
         this.authService.currentUser$.subscribe((user) => {
             if (user) {
                 this.initializeInventory();
+                this.startBatchInterval();
             } else {
                 this.reset();
             }
         });
+    }
+
+    private startBatchInterval(): void {
+        if (this.batchInterval) {
+            clearInterval(this.batchInterval);
+        }
+
+        console.log("Démarrage de l'intervalle de mise à jour par lot de l'inventaire");
+
+        this.batchInterval = setInterval(() => {
+            this.flushPendingUpdates();
+        }, this.BATCH_DELAY);
+    }
+
+    private stopBatchInterval(): void {
+        if (this.batchInterval) {
+            clearInterval(this.batchInterval);
+            this.batchInterval = null;
+            console.log("Arrêt de l'intervalle de mise à jour par lot de l'inventaire");
+        }
+    }
+
+    private flushPendingUpdates(): void {
+        if (this.pendingUpdates.size === 0) {
+            return;
+        }
+
+        console.log("Envoi des mises à jour en lot de l'inventaire vers l'API", this.pendingUpdates.size);
+
+        const updates = new Map(this.pendingUpdates);
+        this.pendingUpdates.clear();
+
+        this.batchUpdateInventory(updates).subscribe({
+            next:() => {
+                console.log("Mises à jour en lot de l'inventaire envoyées avec succès");
+            },
+            error: (error) => {
+                console.error("Erreur lors de l'envoi des mises à jour en lot de l'inventaire", error);
+                updates.forEach((delta, resourceId) => {
+                    const currentDelta = this.pendingUpdates.get(resourceId) || 0;
+                    this.pendingUpdates.set(resourceId, currentDelta + delta);
+                });
+            }
+        });
+    }
+
+    private batchUpdateInventory(updates: Map<string, number>): Observable<void> {
+        const requests: Observable<any>[] = [];
+        const batchUpdates: any[] = [];
+        updates.forEach((delta, resourceId) => {
+            if(delta !== 0) {
+                const operation = delta > 0 ? 'add' : 'remove';
+                const quantity = Math.abs(delta);
+                
+
+                batchUpdates.push({ resourceId, quantity, operation });
+            }
+        });
+
+        if (batchUpdates.length === 0) {
+            return of(void 0);
+        }
+
+        return this.updateResourceOnApi(null, null, null, batchUpdates).pipe(
+            map(() => void 0),
+            catchError((error) => {
+                return throwError(() => error);
+            })
+        );
     }
 
 
@@ -39,6 +121,7 @@ export class InventoryApiService {
                 this.inventory = inventory;
                 this.inventorySubject.next({ ...this.inventory });
                 this.isInitialized = true;
+                this.isInitializedSubject.next(true);
                 console.log("inventaire initialisé", inventory);
             },
             error: (error) => {
@@ -85,16 +168,79 @@ export class InventoryApiService {
         );
     }
 
-    private updateResourceOnApi(resourceId: string, quantity: number, operation: 'add' | 'remove' | 'set'): Observable<Inventory> {
-        const request: UpdateInventoryRequest = {
-            resourceId,
-            quantity,
-            operation
-        };
-        return this.http.put<InventoryResponse>(`${this.API_URL}/inventory`, request).pipe(
-            tap((response) => console.log("Ressource mise à jour sur l'API", response)),
-            map((response) => response.items),
-            tap(() => console.log("Ressource mise à jour sur l'API", request)),
+    private updateResourceOnApi(resourceId: string | null, quantity: number | null, operation: 'add' | 'remove' | 'set' | null, batchUpdates?: { resourceId: string; quantity: number; operation: 'add' | 'remove' | 'set' }[]): Observable<Inventory> {
+        
+        let body: any;
+        let endpoint = `${this.API_URL}/inventory`;
+
+        // Mode batch : envoyer un tableau de mises à jour
+        if (batchUpdates && batchUpdates.length > 0) {
+            const inventoryItems: { resourceId: string; quantity: number}[] = [];
+
+            batchUpdates.forEach(update => {
+                let finalQuantity = update.quantity;
+                const currentQuantity = this.inventory[update.resourceId] || 0;
+                if (update.operation === 'add') {
+                    finalQuantity = currentQuantity + update.quantity;
+                } else if (update.operation === 'remove') {
+                    finalQuantity = Math.max(0, currentQuantity - update.quantity);
+                } else if (update.operation === 'set') {
+                    finalQuantity = update.quantity;
+                }
+                inventoryItems.push({ resourceId: update.resourceId, quantity: finalQuantity });
+            });
+
+            body = inventoryItems;
+
+            console.log(`📤 Batch API call: ${batchUpdates.length} mises à jour`);
+        } 
+        // Mode single : une seule mise à jour
+        else if (resourceId && quantity !== null && operation) {
+            body = { resourceId, quantity, operation };
+            console.log(`📤 Single API call: ${resourceId} ${operation} ${quantity}`);
+        } 
+        else {
+            console.error('❌ Paramètres invalides pour updateResourceOnApi');
+            return of({});
+        }
+
+        return this.http.put<InventoryResponse | any>(endpoint, body).pipe(
+            map(response => {
+                // Gérer les différents formats de réponse
+                if (response && response.resources && typeof response.resources === 'object' && !Array.isArray(response.resources)) {
+                    return response.resources;
+                }
+                
+                if (Array.isArray(response)) {
+                    const inventory: Inventory = {};
+                    response.forEach((item: any) => {
+                    if (item.resourceId && item.quantity !== undefined) {
+                        inventory[item.resourceId] = item.quantity;
+                    }
+                    });
+                    return inventory;
+                }
+                
+                if (response && response.resources && Array.isArray(response.resources)) {
+                    const inventory: Inventory = {};
+                    response.resources.forEach((item: any) => {
+                    if (item.resourceId && item.quantity !== undefined) {
+                        inventory[item.resourceId] = item.quantity;
+                    }
+                    });
+                    return inventory;
+                }
+                
+                // Si le backend retourne juste 200 OK sans body
+                return {};
+            }),
+            tap((inventory) => {
+                if (batchUpdates) {
+                    console.log(`💾 Batch de ${batchUpdates.length} ressources synchronisé`);
+                } else if (resourceId) {
+                    console.log(`💾 Ressource ${resourceId} mise à jour`);
+                }
+            })
         );
     }
 
@@ -140,37 +286,41 @@ export class InventoryApiService {
     }
 
     getResourceQuantity(resourceId: string): number {
+        if(!this.inventory || typeof this.inventory !== 'object') {
+            console.log("Inventaire non initialisé ou invalide");
+            return 0;
+        }
+
         return this.inventory[resourceId] || 0;
     }
 
     hasResource(resourceId: string, quantity: number): boolean {
+        if (!this.inventory || typeof this.inventory !== 'object') {
+            return false;
+        }
         return this.getResourceQuantity(resourceId) >= quantity;
     }
 
     hasResources(requirements: { resourceId: string; quantity: number; }[]): boolean {
+        if (!this.inventory || typeof this.inventory !== 'object') {
+            return false;
+        }
         return requirements.every(req => this.hasResource(req.resourceId, req.quantity));
     }
 
     addResource(resourceId: string, quantity: number): void {
         if (quantity <= 0) return;
 
+        if (!this.inventory || typeof this.inventory !== 'object') {
+            console.log("Inventaire non initialisé ou invalide, initialisation vide");
+            return;
+        }
+
         this.inventory[resourceId] = (this.inventory[resourceId] || 0) + quantity;
         this.inventorySubject.next({ ...this.inventory });
 
-        this.updateResourceOnApi(resourceId, quantity, 'add').subscribe({
-            next: (updatedInventory) => {
-                this.inventory = updatedInventory;
-                this.inventorySubject.next({ ...this.inventory });
-            },
-            error: (error) => {
-                console.error("Erreur lors de l'ajout de la ressource sur l'API", error);
-                this.inventory[resourceId] -= quantity;
-                if (this.inventory[resourceId] <= 0) {
-                    delete this.inventory[resourceId];
-                }
-                this.inventorySubject.next({ ...this.inventory });
-            }
-        });
+        const currentDelta = this.pendingUpdates.get(resourceId) || 0;
+        this.pendingUpdates.set(resourceId, currentDelta + quantity);
     }
 
     removeResource(resourceId: string, quantity: number): boolean {
@@ -187,17 +337,8 @@ export class InventoryApiService {
         }
         this.inventorySubject.next({ ...this.inventory });
 
-        this.updateResourceOnApi(resourceId, quantity, 'remove').subscribe({
-            next: (updatedInventory) => {
-                this.inventory = updatedInventory;
-                this.inventorySubject.next({ ...this.inventory });
-            },
-            error: (error) => {
-                console.error("Erreur lors de la suppression de la ressource sur l'API", error);
-                this.inventory[resourceId] = previousQuantity;
-                this.inventorySubject.next({ ...this.inventory });
-            }
-        });
+        const currentDelta = this.pendingUpdates.get(resourceId) || 0;
+        this.pendingUpdates.set(resourceId, currentDelta - quantity);
 
         return true;
     }
@@ -211,16 +352,9 @@ export class InventoryApiService {
             this.inventory[resourceId] = quantity;
         }
         this.inventorySubject.next({ ...this.inventory });
-        this.updateResourceOnApi(resourceId, quantity, 'set').subscribe({
-            next: (updatedInventory) => {
-                this.inventory = updatedInventory;
-                this.inventorySubject.next({ ...this.inventory });
-            },
-            error: (error) => {
-                console.error("Erreur lors de la mise à jour de la ressource sur l'API", error);
-                this.loadInventoryFromApi().subscribe({});
-            }
-        });
+        
+        this.pendingUpdates.set(resourceId, quantity);
+        this.flushPendingUpdates();
     }
 
     consumeResources(resources: { resourceId: string; quantity: number; }[]): Observable<boolean> {
@@ -263,12 +397,17 @@ export class InventoryApiService {
     }
 
     reset(): void {
+        console.log('🔄 Reset de l\'inventaire...');
+        this.stopBatchInterval();
+        this.pendingUpdates.clear();
         this.inventory = {};
-        this.inventorySubject.next({ ...this.inventory });
+        this.inventorySubject.next({});
         this.isInitialized = false;
+        this.isInitializedSubject.next(false);
     }
 
     syncWithApi(): Observable<Inventory> {
+        this.flushPendingUpdates();
         console.log("synchronisation de l'inventaire avec l'API");
         return this.loadInventoryFromApi().pipe(
             tap((inventory) => {
@@ -285,5 +424,18 @@ export class InventoryApiService {
 
     getResourceTypesCount(): number {
         return Object.keys(this.inventory).length;
+    }
+
+    isInventoryReady(): boolean {
+        return this.isInitialized && this.inventory !== null;
+    }
+
+    isReady$(): Observable<boolean> {
+       return this.isInitializedSubject.asObservable();
+    }
+
+    forceSyncNow(): Observable<void> {
+        this.flushPendingUpdates();
+        return of(void 0);
     }
 }

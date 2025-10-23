@@ -23,7 +23,7 @@ export interface Machine {
   cost: number;
   selectedRecipeId?: string;
   lastProductionTime: number; // timestamp
-  pausedProgress: number; // temps écoulé dans le cycle actuel au moment de la pause (en secondes)
+  pauseProgress: number; // temps écoulé dans le cycle actuel au moment de la pause (en secondes)
   isActive: boolean;
 }
 

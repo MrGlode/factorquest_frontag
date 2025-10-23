@@ -330,7 +330,7 @@ export class MarketService {
         // Nettoyer les commandes expirées au chargement
         this.cleanupExpiredOrders();
       } catch (error) {
-        console.error('Erreur lors du chargement du marché:', error);
+        //console.error('Erreur lors du chargement du marché:', error);
       }
     }
   }

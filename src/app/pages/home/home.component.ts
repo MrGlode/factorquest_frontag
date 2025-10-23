@@ -4,7 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 
 import { NavigationService, NavigationTab } from '../../services/navigation';
 import { GameStateApiService } from '../../services/game-state-api.service';
-import { MachineService } from '../../services/machine';
+import { MachineApiService } from '../../services/machine-api.service';
 
 import { Dashboard } from '../dashboard/dashboard';
 import { Mines } from '../mines/mines';
@@ -36,7 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private navigationService: NavigationService,
     private gameStateService: GameStateApiService,
-    private machineService: MachineService
+    private machineService: MachineApiService
   ) {
     this.gameState$ = this.gameStateService.getGameState$();
     this.currentTab$ = this.navigationService.getCurrentTab$();

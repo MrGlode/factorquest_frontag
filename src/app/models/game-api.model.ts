@@ -34,6 +34,10 @@ export interface UpdateInventoryRequest {
     operation: 'add' | 'remove' | 'set';
 }
 
+export interface BatchUpdateInventoryRequest {
+    updates: UpdateInventoryRequest[];
+}
+
 export interface ConsumeResourcesRequest {
     resources: { resourceId: string; quantity: number }[];
 }
@@ -46,7 +50,7 @@ export interface MachineResponse {
     cost: number;
     selectedRecipeId?: string;
     lastProductionTime: number;
-    pausedProgress: number;
+    pauseProgress: number;
     isActive: boolean;
     createdAt: string;
 }
@@ -58,7 +62,8 @@ export interface PurchaseMachineRequest {
 export interface UpdateMachineRequest {
     selectedRecipeId?: string;
     isActive?: boolean;
-    pausedProgress?: number;
+    pauseProgress?: number;
+    lastProductionTime?: number;
 }
 
 export interface MachineProductionRequest {

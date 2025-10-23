@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { GameState } from '../models/game.model';
-import { MachineService } from '../services/machine';
+import { MachineApiService } from '../services/machine-api.service';
 import { InventoryApiService } from '../services/inventory-api.service';
 import { MarketService } from '../services/market';
 import { ResearchService } from '../services/research';
@@ -24,7 +24,7 @@ export class GameStateService {
   private gameStateSubject = new BehaviorSubject<GameState>(this.gameState);
 
   constructor(
-    private machineService: MachineService,
+    private machineService: MachineApiService,
     private inventoryService: InventoryApiService,
     private marketService: MarketService,
     private researchService: ResearchService,

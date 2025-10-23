@@ -4,7 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 
 import { GameStateApiService } from '../../services/game-state-api.service';
 import { InventoryApiService } from '../../services/inventory-api.service';
-import { MachineService } from '../../services/machine';
+import { MachineApiService } from '../../services/machine-api.service';
 import { RecipeService } from '../../services/recipe';
 import { ProductionService } from '../../services/production';
 
@@ -31,7 +31,7 @@ export class Assemblers implements OnInit, OnDestroy {
   constructor(
     private gameStateService: GameStateApiService,
     private inventoryService: InventoryApiService,
-    private machineService: MachineService,
+    private machineService: MachineApiService,
     private recipeService: RecipeService,
     private productionService: ProductionService
   ) {
@@ -65,8 +65,14 @@ export class Assemblers implements OnInit, OnDestroy {
     
     if (this.gameStateService.canAfford(cost)) {
       if (this.gameStateService.spendMoney(cost)) {
-        const machine = this.machineService.buyMachine('assembler');
-        console.log(`Assembleur acheté: ${machine.name} pour ${cost} crédits`);
+        this.machineService.buyMachine('assembler').subscribe({
+          next: (machine) => {
+            console.log(`Assembleur acheté: ${machine.name} pour ${cost} crédits`);
+          },
+          error: (err) => {
+            console.log('Erreur lors de l\'achat de l\'assembleur : ' + err.message);
+          }
+        });
       }
     } else {
       alert('Pas assez d\'argent pour acheter un assembleur !');

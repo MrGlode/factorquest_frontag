@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { MachineService } from './machine';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError, filter, take } from 'rxjs/operators';
+import { MachineApiService } from './machine-api.service';
 import { RecipeService } from './recipe';
 import { InventoryApiService } from './inventory-api.service';
 import { GameStateApiService } from './game-state-api.service';
@@ -13,14 +15,28 @@ export class ProductionService {
   private productionInterval: any;
 
   constructor(
-    private machineService: MachineService,
+    private machineService: MachineApiService,
     private recipeService: RecipeService,
     private inventoryService: InventoryApiService,
     private gameStateService: GameStateApiService,
     private researchService: ResearchService
   ) {
-    this.startProductionLoop();
-    this.calculateOfflineProduction();
+    console.log('🏭 ProductionService créé');
+    
+    // ✅ Attendre que l'inventaire soit vraiment prêt (filter + take)
+    this.inventoryService.isReady$().pipe(
+      filter(isReady => isReady === true), // Attendre que ce soit true
+      take(1) // Prendre seulement la première émission "true"
+    ).subscribe(() => {
+      console.log('✅ Inventaire prêt, démarrage de la production');
+      if (!this.productionInterval) {
+        this.startProductionLoop();
+        // Calculer la production hors ligne après un petit délai
+        setTimeout(() => {
+          this.calculateOfflineProduction();
+        }, 1000);
+      }
+    });
   }
 
   // Démarrer la boucle de production (toutes les secondes)
@@ -84,6 +100,7 @@ export class ProductionService {
           }
         }
         
+        /**
         this.produceOutputs(recipe, Math.floor(completedCycles * outputMultiplier));
         
         // Mettre à jour le temps de production avec la durée modifiée
@@ -91,10 +108,47 @@ export class ProductionService {
         this.machineService.updateMachineProductionTime(machineId);
         
         console.log(`${machine.name} a produit ${completedCycles} cycle(s) de ${recipe.name} (bonus: +${researchBonus.speed}% vitesse, +${researchBonus.bonusOutput}% bonus)`);
+        */
+
+        this.executeProduction(recipe, completedCycles, Math.floor(completedCycles * outputMultiplier)).subscribe({
+          next: () => {
+            this.machineService.updateMachineProductionTime(machineId).subscribe();
+            console.log(`${machine.name} a produit ${completedCycles} cycle(s) de ${recipe.name} (bonus: +${researchBonus.speed}% vitesse, +${researchBonus.bonusOutput}% bonus)`);
+          },
+          error: (err) => {
+            console.error("Erreur lors de l'exécution de la production:", err);
+          }
+        });
       } else {
         console.log(`${machine.name} ne peut pas produire: ressources insuffisantes`);
       }
     }
+  }
+
+  private executeProduction(recipe: any, inputCycles: number, outputCycles: number) {
+    if(recipe.machineType === 'mine') {
+      recipe.outputs.forEach((output: any) => {
+        this.inventoryService.addResource(output.resourceId, output.quantity * outputCycles);
+      });
+      return of(true);
+    }
+
+    const consumeOps = recipe.inputs.map((input: any) => 
+      of(this.inventoryService.removeResource(input.resourceId, input.quantity * inputCycles))
+    );
+
+    return forkJoin(consumeOps).pipe(
+      switchMap(() => {
+        recipe.outputs.forEach((output: any) => {
+          this.inventoryService.addResource(output.resourceId, output.quantity * outputCycles);
+        });
+        return of(true);
+      }),
+      catchError((error) => {
+        console.error("Erreur lors de la production:", error);
+        return of(false);
+      })
+    );
   }
 
   // Vérifier si on peut produire une recette
@@ -190,7 +244,7 @@ export class ProductionService {
       progress = Math.min((timeSinceLastProduction % effectiveDuration) / effectiveDuration, 1);
     } else {
       // Machine en pause : on garde le progrès sauvegardé
-      progress = Math.min(machine.pausedProgress / effectiveDuration, 1);
+      progress = Math.min(machine.pauseProgress / effectiveDuration, 1);
     }
 
     return {
